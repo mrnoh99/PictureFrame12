@@ -7,7 +7,6 @@ final class SettingsViewController: UITableViewController {
     private let audioPlayer: AudioPlayerService
     private let lightroomAuth: LightroomAuthService
 
-    // Table sections
     private enum Section: Int, CaseIterable {
         case albums = 0
         case display
@@ -30,9 +29,9 @@ final class SettingsViewController: UITableViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done,
             target: self, action: #selector(done))
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        tableView.register(SwitchCell.self, forCellReuseIdentifier: "switch")
+        tableView.register(SwitchCell.self,  forCellReuseIdentifier: "switch")
         tableView.register(StepperCell.self, forCellReuseIdentifier: "stepper")
-        tableView.register(SliderCell.self, forCellReuseIdentifier: "slider")
+        tableView.register(SliderCell.self,  forCellReuseIdentifier: "slider")
     }
 
     @objc private func done() { dismiss(animated: true) }
@@ -43,11 +42,11 @@ final class SettingsViewController: UITableViewController {
 
     override func tableView(_ tv: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section)! {
-        case .albums:    return settings.selectedAlbums.count + 3  // +add iOS, +add LR, +add folder
+        case .albums:    return settings.selectedAlbums.count + 3
         case .display:   return 1
-        case .slideshow: return 5  // interval, kenburns, kenburns intensity, transition, fit style
+        case .slideshow: return 5
         case .music:     return settings.musicEnabled ? 4 : 1
-        case .overlay:   return 2  // clock, always show controls
+        case .overlay:   return 3  // clock, weather, always-show-controls
         }
     }
 
@@ -63,19 +62,15 @@ final class SettingsViewController: UITableViewController {
 
     override func tableView(_ tv: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         switch Section(rawValue: indexPath.section)! {
-        case .albums:
-            return albumCell(tv, at: indexPath)
+        case .albums:    return albumCell(tv, at: indexPath)
         case .display:
             let cell = tv.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
             cell.textLabel?.text = settings.displayMode.displayName
             cell.accessoryType = .disclosureIndicator
             return cell
-        case .slideshow:
-            return slideshowCell(tv, at: indexPath)
-        case .music:
-            return musicCell(tv, at: indexPath)
-        case .overlay:
-            return overlayCell(tv, at: indexPath)
+        case .slideshow: return slideshowCell(tv, at: indexPath)
+        case .music:     return musicCell(tv, at: indexPath)
+        case .overlay:   return overlayCell(tv, at: indexPath)
         }
     }
 
@@ -95,7 +90,8 @@ final class SettingsViewController: UITableViewController {
         return indexPath.row < settings.selectedAlbums.count
     }
 
-    override func tableView(_ tv: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tv: UITableView, commit editingStyle: UITableViewCell.EditingStyle,
+                             forRowAt indexPath: IndexPath) {
         if editingStyle == .delete, Section(rawValue: indexPath.section) == .albums,
            indexPath.row < settings.selectedAlbums.count {
             settings.removeAlbum(settings.selectedAlbums[indexPath.row])
@@ -113,7 +109,7 @@ final class SettingsViewController: UITableViewController {
             cell.accessoryType = .none
             cell.textLabel?.textColor = .label
         } else {
-            let actions = ["+ iOS 사진 안부에서 선택", "+ Lightroom 안부에서 선택", "+ 폴더에서 선택"]
+            let actions = ["+  iOS 사진에서 선택", "+ Lightroom에서 선택", "+ 폴더에서 선택"]
             cell.textLabel?.text = actions[indexPath.row - addOffset]
             cell.textLabel?.textColor = .systemBlue
             cell.accessoryType = .none
@@ -148,7 +144,7 @@ final class SettingsViewController: UITableViewController {
             return cell
         case 4:
             let cell = tv.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-            cell.textLabel?.text = "선캐 채우기: \(settings.slideshowFitStyle.displayName)"
+            cell.textLabel?.text = "선택 채우기: \(settings.slideshowFitStyle.displayName)"
             cell.accessoryType = .disclosureIndicator
             return cell
         default:
@@ -197,6 +193,12 @@ final class SettingsViewController: UITableViewController {
             return cell
         case 1:
             let cell = tv.dequeueReusableCell(withIdentifier: "switch", for: indexPath) as! SwitchCell
+            cell.configure(title: "날씨 표시", isOn: settings.showWeather) { [weak self] v in
+                self?.settings.showWeather = v
+            }
+            return cell
+        case 2:
+            let cell = tv.dequeueReusableCell(withIdentifier: "switch", for: indexPath) as! SwitchCell
             cell.configure(title: "설정 버튼 항상 표시", isOn: settings.alwaysShowControls) { [weak self] v in
                 self?.settings.alwaysShowControls = v
             }
@@ -222,14 +224,14 @@ final class SettingsViewController: UITableViewController {
     private func showAlbumPicker(source: PhotoSourceKind) {
         let photoLib = PhotoLibraryService()
         let lrSvc = LightroomService(auth: lightroomAuth)
-        let vc = AlbumPickerViewController(source: source, settings: settings, photoLib: photoLib, lightroomSvc: lrSvc)
+        let vc = AlbumPickerViewController(source: source, settings: settings,
+                                           photoLib: photoLib, lightroomSvc: lrSvc)
         vc.delegate = self
         let nav = UINavigationController(rootViewController: vc)
         present(nav, animated: true)
     }
 
     private func showFolderPicker() {
-        // iOS 12 uses string UTI not UTType
         let picker = UIDocumentPickerViewController(documentTypes: ["public.folder"], in: .open)
         picker.delegate = self
         picker.allowsMultipleSelection = false
@@ -245,9 +247,7 @@ final class SettingsViewController: UITableViewController {
             })
         }
         sheet.addAction(UIAlertAction(title: "취소", style: .cancel))
-        if let pop = sheet.popoverPresentationController {
-            pop.sourceView = tableView
-        }
+        if let pop = sheet.popoverPresentationController { pop.sourceView = tableView }
         present(sheet, animated: true)
     }
 
@@ -270,7 +270,7 @@ final class SettingsViewController: UITableViewController {
     }
 
     private func showFitStylePicker() {
-        let sheet = UIAlertController(title: "선캐 채우기", message: nil, preferredStyle: .actionSheet)
+        let sheet = UIAlertController(title: "선택 채우기", message: nil, preferredStyle: .actionSheet)
         for style in CollageFitStyle.allCases {
             sheet.addAction(UIAlertAction(title: style.displayName, style: .default) { [weak self] _ in
                 self?.settings.slideshowFitStyle = style
@@ -316,12 +316,8 @@ extension SettingsViewController: UIDocumentPickerDelegate {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         for url in urls {
             if url.hasDirectoryPath {
-                // Could be photo folder or music folder
-                if controller.documentTypes.contains("public.folder") {
-                    try? settings.addFolderAlbum(url: url)
-                }
+                try? settings.addFolderAlbum(url: url)
             } else {
-                // Audio file
                 let fm = FileManager.default
                 let dest = SettingsStore.musicDirectory.appendingPathComponent(url.lastPathComponent)
                 try? fm.copyItem(at: url, to: dest)
@@ -373,7 +369,8 @@ final class StepperCell: UITableViewCell {
     }
     required init?(coder: NSCoder) { fatalError() }
 
-    func configure(title: String, value: Double, min: Double, max: Double, step: Double, onChange: @escaping (Double) -> Void) {
+    func configure(title: String, value: Double, min: Double, max: Double, step: Double,
+                   onChange: @escaping (Double) -> Void) {
         textLabel?.text = title
         stepper.minimumValue = min; stepper.maximumValue = max; stepper.stepValue = step
         stepper.value = value

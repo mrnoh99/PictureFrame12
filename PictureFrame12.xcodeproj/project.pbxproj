@@ -37,6 +37,7 @@
 		BB000000000000000000001C /* AlbumPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001C /* AlbumPickerViewController.swift */; };
 		BB000000000000000000001D /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001D /* SettingsViewController.swift */; };
 		BB000000000000000000001F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001F /* LaunchScreen.storyboard */; };
+		BB0000000000000000000023 /* WeatherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000023 /* WeatherManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -74,6 +75,7 @@
 		AA0000000000000000000020 /* PictureFrame12-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PictureFrame12-Bridging-Header.h"; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* PictureFrame12.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PictureFrame12.entitlements; sourceTree = "<group>"; };
 		AA0000000000000000000022 /* PictureFrame12.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PictureFrame12.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000023 /* WeatherManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +151,7 @@
 				AA000000000000000000000A /* FolderPhotoService.swift */,
 				AA000000000000000000000B /* ImageCache.swift */,
 				AA000000000000000000000C /* AudioPlayerService.swift */,
+				AA0000000000000000000023 /* WeatherManager.swift */,
 				CC0000000000000000000006 /* Lightroom */,
 			);
 			path = Services;
@@ -306,6 +309,7 @@
 				BB000000000000000000001B /* GridGalleryViewController.swift in Sources */,
 				BB000000000000000000001C /* AlbumPickerViewController.swift in Sources */,
 				BB000000000000000000001D /* SettingsViewController.swift in Sources */,
+				BB0000000000000000000023 /* WeatherManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -368,6 +372,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = "-weak_framework WeatherKit";
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.PictureFrame12;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -391,6 +396,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = "-weak_framework WeatherKit";
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.PictureFrame12;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
