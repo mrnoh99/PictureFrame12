@@ -1,15 +1,15 @@
 import UIKit
 
 extension Notification.Name {
-    static let appDidBecomeActive = Notification.Name("appDidBecomeActive")
-    static let settingsDidChange = Notification.Name("settingsDidChange")
+    static let appDidBecomeActive    = Notification.Name("appDidBecomeActive")
+    static let settingsDidChange     = Notification.Name("settingsDidChange")
     static let selectedAlbumsChanged = Notification.Name("selectedAlbumsChanged")
-    static let musicSettingsChanged = Notification.Name("musicSettingsChanged")
-    static let displayModeChanged = Notification.Name("displayModeChanged")
+    static let musicSettingsChanged  = Notification.Name("musicSettingsChanged")
+    static let displayModeChanged    = Notification.Name("displayModeChanged")
     static let slideshowSettingsChanged = Notification.Name("slideshowSettingsChanged")
-    static let overlaySettingsChanged = Notification.Name("overlaySettingsChanged")
-    static let photosReloaded = Notification.Name("photosReloaded")
-    static let photosLoadFailed = Notification.Name("photosLoadFailed")
+    static let overlaySettingsChanged   = Notification.Name("overlaySettingsChanged")
+    static let photosReloaded        = Notification.Name("photosReloaded")
+    static let photosLoadFailed      = Notification.Name("photosLoadFailed")
 }
 
 @UIApplicationMain
@@ -24,17 +24,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         UIApplication.shared.isIdleTimerDisabled = true
 
-        settings = SettingsStore()
-        audioPlayer = AudioPlayerService()
+        settings     = SettingsStore()
+        audioPlayer  = AudioPlayerService()
         lightroomAuth = LightroomAuthService()
 
-        let photoLib = PhotoLibraryService()
+        let photoLib    = PhotoLibraryService()
         let lightroomSvc = LightroomService(auth: lightroomAuth)
-        let folderSvc = FolderPhotoService(settings: settings)
+        let folderSvc   = FolderPhotoService(settings: settings)
         let vm = FrameViewModel(settings: settings,
                                 photoLib: photoLib,
                                 lightroom: lightroomSvc,
                                 folder: folderSvc)
+
+        // Start weather service
+        WeatherManager.shared.start()
 
         let rootVC = RootViewController(settings: settings,
                                         audioPlayer: audioPlayer,

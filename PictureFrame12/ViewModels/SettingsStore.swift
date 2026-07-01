@@ -106,6 +106,10 @@ final class SettingsStore {
         didSet { UserDefaults.standard.set(showClock, forKey: "showClock")
                  post(.overlaySettingsChanged) }
     }
+    var showWeather: Bool {
+        didSet { UserDefaults.standard.set(showWeather, forKey: "showWeather")
+                 post(.overlaySettingsChanged) }
+    }
     var alwaysShowControls: Bool {
         didSet { UserDefaults.standard.set(alwaysShowControls, forKey: "alwaysShowControls")
                  post(.overlaySettingsChanged) }
@@ -129,11 +133,11 @@ final class SettingsStore {
     // MARK: - Init
     init() {
         let d = UserDefaults.standard
-        selectedAlbums = Self.load(key: "selectedAlbums") ?? []
+        selectedAlbums  = Self.load(key: "selectedAlbums") ?? []
         folderBookmarks = Self.load(key: "folderBookmarks") ?? [:]
-        displayMode = DisplayMode(rawValue: d.string(forKey: "displayMode") ?? "") ?? .slideshow
-        slideInterval = d.double(forKey: "slideInterval").nonZero ?? AppConfig.defaultSlideInterval
-        kenBurnsEnabled = d.object(forKey: "kenBurnsEnabled") as? Bool ?? true
+        displayMode     = DisplayMode(rawValue: d.string(forKey: "displayMode") ?? "") ?? .slideshow
+        slideInterval   = d.double(forKey: "slideInterval").nonZero ?? AppConfig.defaultSlideInterval
+        kenBurnsEnabled   = d.object(forKey: "kenBurnsEnabled")   as? Bool   ?? true
         kenBurnsIntensity = d.object(forKey: "kenBurnsIntensity") as? Double ?? 1.0
         slideTransition = SlideTransition(rawValue: d.string(forKey: "slideTransition") ?? "") ?? .crossfade
         let savedT: [String] = Self.load(key: "selectedTransitions") ?? []
@@ -142,14 +146,15 @@ final class SettingsStore {
         collageRangeMin = d.integer(forKey: "collageRangeMin").nonZero ?? 1
         collageRangeMax = d.integer(forKey: "collageRangeMax").nonZero ?? 4
         slideshowFitStyle = CollageFitStyle(rawValue: d.string(forKey: "slideshowFitStyle") ?? "") ?? .blurFill
-        musicEnabled = d.object(forKey: "musicEnabled") as? Bool ?? false
-        musicVolume = d.object(forKey: "musicVolume") as? Double ?? 0.6
-        musicTracks = Self.load(key: "musicTracks") ?? []
+        musicEnabled    = d.object(forKey: "musicEnabled")  as? Bool   ?? false
+        musicVolume     = d.object(forKey: "musicVolume")   as? Double ?? 0.6
+        musicTracks     = Self.load(key: "musicTracks")     ?? []
         musicFolderTracks = Self.load(key: "musicFolderTracks") ?? []
         musicFolderName = d.string(forKey: "musicFolderName")
-        showClock = d.object(forKey: "showClock") as? Bool ?? false
+        showClock       = d.object(forKey: "showClock")     as? Bool ?? false
+        showWeather     = d.object(forKey: "showWeather")   as? Bool ?? true
         alwaysShowControls = d.object(forKey: "alwaysShowControls") as? Bool ?? true
-        appLanguage = d.string(forKey: "appLanguage") ?? "ko"
+        appLanguage     = d.string(forKey: "appLanguage") ?? "ko"
     }
 
     // MARK: - Helpers
