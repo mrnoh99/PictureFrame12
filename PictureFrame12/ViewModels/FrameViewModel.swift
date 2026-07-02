@@ -23,6 +23,7 @@ final class FrameViewModel {
     private let folder: FolderPhotoService
 
     private var slideTimer: Timer?
+    private var pendingReloadItem: DispatchWorkItem?
     private var prefetchOps: [String: Operation] = [:]
     private let prefetchQueue: OperationQueue = {
         let q = OperationQueue()
@@ -48,12 +49,14 @@ final class FrameViewModel {
     deinit {
         NotificationCenter.default.removeObserver(self)
         slideTimer?.invalidate()
+        pendingReloadItem?.cancel()
     }
 
     @objc private func onAlbumsChanged() {
-        // Debounce: cancel pending reload, fire after 0.5s
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(reload), object: nil)
-        perform(#selector(reload), with: nil, afterDelay: 0.5)
+        pendingReloadItem?.cancel()
+        let item = DispatchWorkItem { [weak self] in self?.reload() }
+        pendingReloadItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: item)
     }
 
     // MARK: - Load
@@ -163,7 +166,7 @@ final class FrameViewModel {
     }
 
     func cachedImage(for photo: FramePhoto, targetSize: CGSize) -> UIImage? {
-        ImageCache.shared.memoryImage(for: photo.id, size: clampToScreen(targetSize))
+        return ImageCache.shared.memoryImage(for: photo.id, size: clampToScreen(targetSize))
     }
 
     private func clampToScreen(_ size: CGSize) -> CGSize {

@@ -26,11 +26,10 @@ final class WelcomeViewController: UIViewController {
     }
 
     private func setupContent() {
-        let iconView = UIImageView()
-        let cfg = UIImage.SymbolConfiguration(pointSize: 64, weight: .thin)
-        iconView.image = UIImage(systemName: "photo.on.rectangle.angled", withConfiguration: cfg)
-        iconView.tintColor = UIColor.white.withAlphaComponent(0.9)
-        iconView.contentMode = .scaleAspectFit
+        let iconLabel = UILabel()
+        iconLabel.text = "\u{1F5BC}"
+        iconLabel.font = UIFont.systemFont(ofSize: 64)
+        iconLabel.textAlignment = .center
 
         let titleLabel = UILabel()
         titleLabel.text = "Picture Frame"
@@ -44,7 +43,7 @@ final class WelcomeViewController: UIViewController {
         subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.7)
         subtitleLabel.textAlignment = .center
 
-        let stack = UIStackView(arrangedSubviews: [iconView, titleLabel, subtitleLabel])
+        let stack = UIStackView(arrangedSubviews: [iconLabel, titleLabel, subtitleLabel])
         stack.axis = .vertical
         stack.spacing = 16
         stack.alignment = .center
@@ -52,9 +51,7 @@ final class WelcomeViewController: UIViewController {
         view.addSubview(stack)
         NSLayoutConstraint.activate([
             stack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            stack.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 80),
-            iconView.heightAnchor.constraint(equalToConstant: 80)
+            stack.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
 }

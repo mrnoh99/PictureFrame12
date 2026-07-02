@@ -25,8 +25,8 @@ final class RootViewController: UIViewController {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    override var prefersStatusBarHidden: Bool { true }
-    override var prefersHomeIndicatorAutoHidden: Bool { true }
+    override var prefersStatusBarHidden: Bool { return true }
+    override var prefersHomeIndicatorAutoHidden: Bool { return true }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -54,10 +54,9 @@ final class RootViewController: UIViewController {
     // MARK: - Settings Button
 
     private func setupSettingsButton() {
-        let cfg = UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
-        let icon = UIImage(systemName: "gear", withConfiguration: cfg)
-        settingsButton.setImage(icon, for: .normal)
-        settingsButton.tintColor = UIColor.white.withAlphaComponent(0.8)
+        settingsButton.setTitle("⚙", for: .normal)
+        settingsButton.titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .medium)
+        settingsButton.setTitleColor(UIColor.white.withAlphaComponent(0.8), for: .normal)
         settingsButton.translatesAutoresizingMaskIntoConstraints = false
         settingsButton.addTarget(self, action: #selector(openSettings), for: .touchUpInside)
         view.addSubview(settingsButton)

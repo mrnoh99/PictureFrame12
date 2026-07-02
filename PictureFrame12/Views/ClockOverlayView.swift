@@ -97,11 +97,11 @@ final class ClockOverlayView: UIView {
             weatherLabel.isHidden = true
             return
         }
-        weatherLabel.text     = "\(Self.emoji(for: info.symbolName))  \(info.temperatureString)"
+        weatherLabel.text     = "\(ClockOverlayView.emoji(for: info.symbolName))  \(info.temperatureString)"
         weatherLabel.isHidden = false
     }
 
-    // Symbol key → emoji (works on all iOS versions)
+    // Symbol key -> emoji (works on all iOS versions)
     private static func emoji(for symbol: String) -> String {
         switch symbol {
         case "sun.max":          return "\u{2600}\u{FE0F}"  // ☀️

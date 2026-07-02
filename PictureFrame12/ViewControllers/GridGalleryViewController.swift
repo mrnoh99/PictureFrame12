@@ -28,7 +28,7 @@ final class GridGalleryViewController: UIViewController, UICollectionViewDataSou
     }
 
     func collectionView(_ cv: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        viewModel.photos.count
+        return viewModel.photos.count
     }
 
     func collectionView(_ cv: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
