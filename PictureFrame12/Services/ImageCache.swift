@@ -29,7 +29,9 @@ final class ImageCache {
     private func fileURL(for key: String) -> URL {
         let data = Data(key.utf8)
         var digest = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
-        data.withUnsafeBytes { _ = CC_SHA256($0.baseAddress, CC_LONG(data.count), &digest) }
+        data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) in
+            _ = CC_SHA256(ptr, CC_LONG(data.count), &digest)
+        }
         let name = digest.map { String(format: "%02x", $0) }.joined()
         return directory.appendingPathComponent(name).appendingPathExtension("jpg")
     }

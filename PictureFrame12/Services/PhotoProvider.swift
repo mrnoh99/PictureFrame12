@@ -1,6 +1,35 @@
 import Foundation
 import UIKit
 
+// Swift 4.2 compatible Result type (added to stdlib in Swift 5.0)
+enum Result<T, E: Error> {
+    case success(T)
+    case failure(E)
+}
+
+extension Result where E == Error {
+    init(catching body: () throws -> T) {
+        do { self = .success(try body()) }
+        catch { self = .failure(error) }
+    }
+}
+
+extension Result {
+    func map<U>(_ transform: (T) -> U) -> Result<U, E> {
+        switch self {
+        case .success(let value): return .success(transform(value))
+        case .failure(let error): return .failure(error)
+        }
+    }
+
+    func flatMap<U>(_ transform: (T) -> Result<U, E>) -> Result<U, E> {
+        switch self {
+        case .success(let value): return transform(value)
+        case .failure(let error): return .failure(error)
+        }
+    }
+}
+
 protocol PhotoProvider: AnyObject {
     var kind: PhotoSourceKind { get }
     func fetchAlbums(completion: @escaping (Result<[Album], Error>) -> Void)

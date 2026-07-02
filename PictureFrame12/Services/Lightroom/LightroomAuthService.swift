@@ -74,8 +74,8 @@ final class LightroomAuthService: NSObject {
         }
         if #available(iOS 13.0, *) {
             session.presentationContextProvider = self
+            session.prefersEphemeralWebBrowserSession = false
         }
-        session.prefersEphemeralWebBrowserSession = false
         webAuthSession = session
         session.start()
     }
@@ -174,7 +174,9 @@ final class LightroomAuthService: NSObject {
     private static func codeChallenge(for verifier: String) -> String {
         let data = Data(verifier.utf8)
         var digest = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
-        data.withUnsafeBytes { _ = CC_SHA256($0.baseAddress, CC_LONG(data.count), &digest) }
+        data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) in
+            _ = CC_SHA256(ptr, CC_LONG(data.count), &digest)
+        }
         return Data(digest).base64URLEncoded()
     }
 }

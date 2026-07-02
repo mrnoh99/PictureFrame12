@@ -1,6 +1,5 @@
 import UIKit
 import CoreLocation
-import WeatherKit
 
 extension Notification.Name {
     static let weatherDidUpdate = Notification.Name("weatherDidUpdate")
@@ -12,7 +11,7 @@ struct WeatherInfo {
     var temperatureString: String { "\(Int(temperature.rounded()))°C" }
 }
 
-/// Weather service: WeatherKit on iOS 16+, Open-Meteo on iOS 12-15.
+/// Weather service using Open-Meteo (free, no API key required).
 final class WeatherManager: NSObject {
 
     static let shared = WeatherManager()
@@ -60,40 +59,13 @@ final class WeatherManager: NSObject {
 
     @objc private func timerFired() {
         if let loc = lastLocation {
-            fetchWeather(for: loc)
+            fetchWithOpenMeteo(location: loc)
         } else {
             locationManager?.requestLocation()
         }
     }
 
-    private func fetchWeather(for location: CLLocation) {
-        if #available(iOS 16.0, *) {
-            fetchWithWeatherKit(location: location)
-        } else {
-            fetchWithOpenMeteo(location: location)
-        }
-    }
-
-    // MARK: - WeatherKit (iOS 16+)
-
-    @available(iOS 16.0, *)
-    private func fetchWithWeatherKit(location: CLLocation) {
-        Task {
-            do {
-                let weather = try await WeatherService.shared.weather(for: location)
-                let c = weather.currentWeather
-                let info = WeatherInfo(
-                    temperature: c.temperature.converted(to: .celsius).value,
-                    symbolName: c.symbolName
-                )
-                DispatchQueue.main.async { [weak self] in self?.publish(info) }
-            } catch {
-                fetchWithOpenMeteo(location: location)
-            }
-        }
-    }
-
-    // MARK: - Open-Meteo (iOS 12-15 fallback)
+    // MARK: - Open-Meteo
 
     private func fetchWithOpenMeteo(location: CLLocation) {
         let lat = location.coordinate.latitude
@@ -148,7 +120,7 @@ extension WeatherManager: CLLocationManagerDelegate {
         guard let loc = locations.last else { return }
         lastLocation = loc
         manager.stopUpdatingLocation()
-        fetchWeather(for: loc)
+        fetchWithOpenMeteo(location: loc)
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {}

@@ -1,6 +1,5 @@
 import UIKit
 import Photos
-import UniformTypeIdentifiers
 
 final class SettingsViewController: UITableViewController {
     private let settings: SettingsStore
@@ -107,11 +106,10 @@ final class SettingsViewController: UITableViewController {
         if indexPath.row < addOffset {
             cell.textLabel?.text = settings.selectedAlbums[indexPath.row].title
             cell.accessoryType = .none
-            cell.textLabel?.textColor = .label
         } else {
             let actions = ["+  iOS 사진에서 선택", "+ Lightroom에서 선택", "+ 폴더에서 선택"]
             cell.textLabel?.text = actions[indexPath.row - addOffset]
-            cell.textLabel?.textColor = .systemBlue
+            cell.textLabel?.textColor = UIColor(red: 0.0, green: 0.478, blue: 1.0, alpha: 1.0)
             cell.accessoryType = .none
         }
         return cell
@@ -171,7 +169,7 @@ final class SettingsViewController: UITableViewController {
         case 2:
             let cell = tv.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
             cell.textLabel?.text = "+ 음악 파일 추가"
-            cell.textLabel?.textColor = .systemBlue
+            cell.textLabel?.textColor = UIColor(red: 0.0, green: 0.478, blue: 1.0, alpha: 1.0)
             return cell
         case 3:
             let cell = tv.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
@@ -361,7 +359,7 @@ final class StepperCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         selectionStyle = .none
         valueLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 15, weight: .regular)
-        valueLabel.textColor = .secondaryLabel
+        valueLabel.textColor = .gray
         let stack = UIStackView(arrangedSubviews: [valueLabel, stepper])
         stack.spacing = 8
         accessoryView = stack

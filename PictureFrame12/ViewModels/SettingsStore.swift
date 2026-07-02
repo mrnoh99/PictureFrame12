@@ -48,7 +48,7 @@ final class SettingsStore {
                  post(.slideshowSettingsChanged) }
     }
     var selectedTransitions: [SlideTransition] {
-        didSet { save(selectedTransitions.map(\.rawValue), key: "selectedTransitions")
+        didSet { save(selectedTransitions.map { $0.rawValue }, key: "selectedTransitions")
                  post(.slideshowSettingsChanged) }
     }
 

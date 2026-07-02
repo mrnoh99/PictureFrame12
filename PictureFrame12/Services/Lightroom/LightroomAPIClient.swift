@@ -14,20 +14,20 @@ final class LightroomAPIClient {
 
     func fetchCatalog(completion: @escaping (Result<LightroomCatalog, Error>) -> Void) {
         get(path: "/catalog") { result in
-            completion(result.flatMap { Self.stripAndDecode($0, as: LightroomCatalog.self) })
+            completion(result.flatMap { LightroomAPIClient.stripAndDecode($0, as: LightroomCatalog.self) })
         }
     }
 
     func fetchAlbums(catalogID: String, completion: @escaping (Result<[LightroomAlbum], Error>) -> Void) {
         get(path: "/catalogs/\(catalogID)/albums", params: ["subtype": "collection", "limit": "100"]) { result in
-            completion(result.flatMap { Self.stripAndDecode($0, as: LightroomAlbumList.self).map { $0.resources } })
+            completion(result.flatMap { LightroomAPIClient.stripAndDecode($0, as: LightroomAlbumList.self).map { $0.resources } })
         }
     }
 
     func fetchAssets(catalogID: String, albumID: String, completion: @escaping (Result<[LightroomAsset], Error>) -> Void) {
         get(path: "/catalogs/\(catalogID)/albums/\(albumID)/assets",
             params: ["limit": "100", "embed": "asset"]) { result in
-            completion(result.flatMap { Self.stripAndDecode($0, as: LightroomAssetList.self).map { $0.resources.map(\.asset) } })
+            completion(result.flatMap { LightroomAPIClient.stripAndDecode($0, as: LightroomAssetList.self).map { $0.resources.map { $0.asset } } })
         }
     }
 
@@ -96,6 +96,6 @@ final class LightroomAPIClient {
             let stripped = raw.drop(while: { $0 != "{" && $0 != "[" })
             cleaned = Data(stripped.utf8)
         }
-        return Result { try JSONDecoder().decode(type, from: cleaned) }
+        return Result(catching: { try JSONDecoder().decode(type, from: cleaned) })
     }
 }
