@@ -2,16 +2,9 @@ import Foundation
 import UIKit
 
 // Swift 4.2 compatible Result type (added to stdlib in Swift 5.0)
-enum Result<T, E: Error> {
+enum Result<T, E> {
     case success(T)
     case failure(E)
-}
-
-extension Result where E == Error {
-    init(catching body: () throws -> T) {
-        do { self = .success(try body()) }
-        catch { self = .failure(error) }
-    }
 }
 
 extension Result {

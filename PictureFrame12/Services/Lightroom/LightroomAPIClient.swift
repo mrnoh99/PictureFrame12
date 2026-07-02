@@ -82,7 +82,8 @@ final class LightroomAPIClient {
                 if let error = error { DispatchQueue.main.async { completion(.failure(error)) }; return }
                 guard let data = data, let http = response as? HTTPURLResponse,
                       (200..<300).contains(http.statusCode) else {
-                    let body = data.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+                    var body = ""
+                    if let d = data, let s = String(data: d, encoding: .utf8) { body = s }
                     DispatchQueue.main.async { completion(.failure(PhotoProviderError.server("HTTP: \(body)"))) }; return
                 }
                 DispatchQueue.main.async { completion(.success(data)) }
@@ -96,6 +97,10 @@ final class LightroomAPIClient {
             let stripped = raw.drop(while: { $0 != "{" && $0 != "[" })
             cleaned = Data(stripped.utf8)
         }
-        return Result(catching: { try JSONDecoder().decode(type, from: cleaned) })
+        do {
+            return .success(try JSONDecoder().decode(type, from: cleaned))
+        } catch {
+            return .failure(error)
+        }
     }
 }

@@ -36,8 +36,8 @@ final class LightroomAuthService: NSObject {
         guard AppConfig.Lightroom.isConfigured else {
             completion(PhotoProviderError.notConfigured); return
         }
-        let verifier = Self.makeCodeVerifier()
-        let challenge = Self.codeChallenge(for: verifier)
+        let verifier = LightroomAuthService.makeCodeVerifier()
+        let challenge = LightroomAuthService.codeChallenge(for: verifier)
         pkceVerifier = verifier
         pendingSignInCompletion = completion
 
@@ -71,10 +71,6 @@ final class LightroomAuthService: NSObject {
                 return
             }
             if let callbackURL = callbackURL { self.exchangeCode(from: callbackURL) }
-        }
-        if #available(iOS 13.0, *) {
-            session.presentationContextProvider = self
-            session.prefersEphemeralWebBrowserSession = false
         }
         webAuthSession = session
         session.start()
@@ -141,8 +137,10 @@ final class LightroomAuthService: NSObject {
             if let error = error { DispatchQueue.main.async { completion(error) }; return }
             guard let data = data,
                   let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-                let body = data.flatMap { String(data: $0, encoding: .utf8) } ?? ""
-                DispatchQueue.main.async { completion(PhotoProviderError.server("토큰 요청 실패 (\(body))")) }; return
+                var body = ""
+                if let d = data, let s = String(data: d, encoding: .utf8) { body = s }
+                DispatchQueue.main.async { completion(PhotoProviderError.server("토큰 요청 실패 (\(body))")); return }
+                return
             }
             guard let token = try? JSONDecoder().decode(LightroomTokenResponse.self, from: data) else {
                 DispatchQueue.main.async { completion(PhotoProviderError.server("응답 디코딩 실패")) }; return
@@ -178,14 +176,6 @@ final class LightroomAuthService: NSObject {
             _ = CC_SHA256(ptr, CC_LONG(data.count), &digest)
         }
         return Data(digest).base64URLEncoded()
-    }
-}
-
-// MARK: - Presentation context (iOS 13+, no-op on iOS 12)
-@available(iOS 13.0, *)
-extension LightroomAuthService: ASWebAuthenticationPresentationContextProviding {
-    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        UIApplication.shared.keyWindow ?? ASPresentationAnchor()
     }
 }
 

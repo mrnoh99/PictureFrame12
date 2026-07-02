@@ -126,34 +126,34 @@ final class SettingsStore {
     }()
 
     var musicURLs: [URL] {
-        (musicTracks + musicFolderTracks).map { Self.musicDirectory.appendingPathComponent($0) }
+        return (musicTracks + musicFolderTracks).map { SettingsStore.musicDirectory.appendingPathComponent($0) }
     }
-    var hasAnyMusic: Bool { !musicTracks.isEmpty || !musicFolderTracks.isEmpty }
+    var hasAnyMusic: Bool { return !musicTracks.isEmpty || !musicFolderTracks.isEmpty }
 
     // MARK: - Init
     init() {
         let d = UserDefaults.standard
-        selectedAlbums  = Self.load(key: "selectedAlbums") ?? []
-        folderBookmarks = Self.load(key: "folderBookmarks") ?? [:]
+        selectedAlbums  = SettingsStore.load(key: "selectedAlbums") ?? []
+        folderBookmarks = SettingsStore.load(key: "folderBookmarks") ?? [:]
         displayMode     = DisplayMode(rawValue: d.string(forKey: "displayMode") ?? "") ?? .slideshow
         slideInterval   = d.double(forKey: "slideInterval").nonZero ?? AppConfig.defaultSlideInterval
-        kenBurnsEnabled   = d.object(forKey: "kenBurnsEnabled")   as? Bool   ?? true
-        kenBurnsIntensity = d.object(forKey: "kenBurnsIntensity") as? Double ?? 1.0
+        kenBurnsEnabled   = (d.object(forKey: "kenBurnsEnabled")   as? Bool)   ?? true
+        kenBurnsIntensity = (d.object(forKey: "kenBurnsIntensity") as? Double) ?? 1.0
         slideTransition = SlideTransition(rawValue: d.string(forKey: "slideTransition") ?? "") ?? .crossfade
-        let savedT: [String] = Self.load(key: "selectedTransitions") ?? []
+        let savedT: [String] = SettingsStore.load(key: "selectedTransitions") ?? []
         let restored = savedT.compactMap { SlideTransition(rawValue: $0) }
         selectedTransitions = restored.isEmpty ? [.crossfade, .slide, .zoom] : restored
         collageRangeMin = d.integer(forKey: "collageRangeMin").nonZero ?? 1
         collageRangeMax = d.integer(forKey: "collageRangeMax").nonZero ?? 4
         slideshowFitStyle = CollageFitStyle(rawValue: d.string(forKey: "slideshowFitStyle") ?? "") ?? .blurFill
-        musicEnabled    = d.object(forKey: "musicEnabled")  as? Bool   ?? false
-        musicVolume     = d.object(forKey: "musicVolume")   as? Double ?? 0.6
-        musicTracks     = Self.load(key: "musicTracks")     ?? []
-        musicFolderTracks = Self.load(key: "musicFolderTracks") ?? []
+        musicEnabled    = (d.object(forKey: "musicEnabled")  as? Bool)   ?? false
+        musicVolume     = (d.object(forKey: "musicVolume")   as? Double) ?? 0.6
+        musicTracks     = SettingsStore.load(key: "musicTracks")     ?? []
+        musicFolderTracks = SettingsStore.load(key: "musicFolderTracks") ?? []
         musicFolderName = d.string(forKey: "musicFolderName")
-        showClock       = d.object(forKey: "showClock")     as? Bool ?? false
-        showWeather     = d.object(forKey: "showWeather")   as? Bool ?? true
-        alwaysShowControls = d.object(forKey: "alwaysShowControls") as? Bool ?? true
+        showClock       = (d.object(forKey: "showClock")     as? Bool) ?? false
+        showWeather     = (d.object(forKey: "showWeather")   as? Bool) ?? true
+        alwaysShowControls = (d.object(forKey: "alwaysShowControls") as? Bool) ?? true
         appLanguage     = d.string(forKey: "appLanguage") ?? "ko"
     }
 
@@ -187,5 +187,5 @@ final class SettingsStore {
     }
 }
 
-private extension Double { var nonZero: Double? { self == 0 ? nil : self } }
-private extension Int    { var nonZero: Int?    { self == 0 ? nil : self } }
+private extension Double { var nonZero: Double? { return self == 0 ? nil : self } }
+private extension Int    { var nonZero: Int?    { return self == 0 ? nil : self } }

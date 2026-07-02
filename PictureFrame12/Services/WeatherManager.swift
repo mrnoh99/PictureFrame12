@@ -8,7 +8,7 @@ extension Notification.Name {
 struct WeatherInfo {
     let temperature: Double
     let symbolName: String
-    var temperatureString: String { "\(Int(temperature.rounded()))°C" }
+    var temperatureString: String { return "\(Int(temperature.rounded()))°C" }
 }
 
 /// Weather service using Open-Meteo (free, no API key required).
@@ -76,7 +76,8 @@ final class WeatherManager: NSObject {
 
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
             guard let data = data,
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let jsonAny = try? JSONSerialization.jsonObject(with: data),
+                  let json = jsonAny as? [String: Any],
                   let cw   = json["current_weather"] as? [String: Any],
                   let temp = cw["temperature"] as? Double,
                   let code = cw["weathercode"] as? Int else { return }
@@ -91,7 +92,7 @@ final class WeatherManager: NSObject {
         NotificationCenter.default.post(name: .weatherDidUpdate, object: self)
     }
 
-    // WMO weather code → internal symbol key
+    // WMO weather code -> internal symbol key
     private static func symbol(for code: Int) -> String {
         switch code {
         case 0:           return "sun.max"
