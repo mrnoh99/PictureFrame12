@@ -42,7 +42,7 @@ enum SlideTransition: String, CaseIterable, Codable {
             x = (x &* 0x9E3779B97F4A7C15) ^ (x >> 29)
             return effects[Int(x % UInt64(effects.count))]
         } else if self == .mixed {
-            return Self.cycle[((index % Self.cycle.count) + Self.cycle.count) % Self.cycle.count]
+            return SlideTransition.cycle[((index % SlideTransition.cycle.count) + SlideTransition.cycle.count) % SlideTransition.cycle.count]
         }
         return self
     }
@@ -66,7 +66,7 @@ enum SlideTransition: String, CaseIterable, Codable {
         case .slide:
             toView.transform = CGAffineTransform(translationX: container.bounds.width, y: 0)
             container.addSubview(toView)
-            UIView.animate(withDuration: duration, options: .curveEaseInOut, animations: {
+            UIView.animate(withDuration: duration, delay: 0, options: .curveEaseInOut, animations: {
                 toView.transform = .identity
                 fromView.transform = CGAffineTransform(translationX: -container.bounds.width, y: 0)
             }, completion: { _ in fromView.removeFromSuperview(); fromView.transform = .identity; completion() })
@@ -74,7 +74,7 @@ enum SlideTransition: String, CaseIterable, Codable {
         case .push:
             toView.transform = CGAffineTransform(translationX: container.bounds.width, y: 0)
             container.addSubview(toView)
-            UIView.animate(withDuration: duration, options: .curveEaseInOut, animations: {
+            UIView.animate(withDuration: duration, delay: 0, options: .curveEaseInOut, animations: {
                 toView.transform = .identity
                 fromView.transform = CGAffineTransform(translationX: -container.bounds.width * 0.3, y: 0)
             }, completion: { _ in fromView.removeFromSuperview(); fromView.transform = .identity; completion() })
@@ -102,7 +102,7 @@ enum SlideTransition: String, CaseIterable, Codable {
         case .pushUp:
             toView.transform = CGAffineTransform(translationX: 0, y: container.bounds.height)
             container.addSubview(toView)
-            UIView.animate(withDuration: duration, options: .curveEaseInOut, animations: {
+            UIView.animate(withDuration: duration, delay: 0, options: .curveEaseInOut, animations: {
                 toView.transform = .identity
                 fromView.transform = CGAffineTransform(translationX: 0, y: -container.bounds.height)
             }, completion: { _ in fromView.removeFromSuperview(); fromView.transform = .identity; completion() })
@@ -110,7 +110,7 @@ enum SlideTransition: String, CaseIterable, Codable {
         case .pushDown:
             toView.transform = CGAffineTransform(translationX: 0, y: -container.bounds.height)
             container.addSubview(toView)
-            UIView.animate(withDuration: duration, options: .curveEaseInOut, animations: {
+            UIView.animate(withDuration: duration, delay: 0, options: .curveEaseInOut, animations: {
                 toView.transform = .identity
                 fromView.transform = CGAffineTransform(translationX: 0, y: container.bounds.height)
             }, completion: { _ in fromView.removeFromSuperview(); fromView.transform = .identity; completion() })

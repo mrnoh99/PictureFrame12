@@ -5,11 +5,11 @@ enum DisplayMode: String, CaseIterable, Codable {
     case collage
     case grid
 
-    static var selectableCases: [DisplayMode] { [.slideshow, .grid] }
+    static var selectableCases: [DisplayMode] { return [.slideshow, .grid] }
 
     var displayName: String {
         switch self {
-        case .slideshow: return "슬라이드쇼"
+        case .slideshow: return "슬라이드쿼"
         case .collage:   return "콜라주"
         case .grid:      return "그리드"
         }

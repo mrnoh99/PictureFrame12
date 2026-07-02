@@ -31,11 +31,11 @@ final class FolderPhotoService: PhotoProvider {
             includingPropertiesForKeys: [.contentModificationDateKey],
             options: [.skipsHiddenFiles])) ?? []
         let photos = urls
-            .filter { Self.imageExtensions.contains($0.pathExtension.lowercased()) }
+            .filter { FolderPhotoService.imageExtensions.contains($0.pathExtension.lowercased()) }
             .map { url -> FramePhoto in
                 let date = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
                 return FramePhoto(id: url.absoluteString, source: .folder,
-                                  creationDate: date, aspectRatio: Self.aspectRatio(of: url))
+                                  creationDate: date, aspectRatio: FolderPhotoService.aspectRatio(of: url))
             }
         completion(.success(photos))
     }
@@ -44,7 +44,7 @@ final class FolderPhotoService: PhotoProvider {
         DispatchQueue.global(qos: .userInitiated).async {
             guard let url = URL(string: photo.id) else { DispatchQueue.main.async { completion(nil) }; return }
             let maxDim = max(targetSize.width, targetSize.height) * 2
-            let image = Self.downsampledImage(at: url, maxPixel: maxDim > 0 ? maxDim : 2048)
+            let image = FolderPhotoService.downsampledImage(at: url, maxPixel: maxDim > 0 ? maxDim : 2048)
             DispatchQueue.main.async { completion(image) }
         }
     }

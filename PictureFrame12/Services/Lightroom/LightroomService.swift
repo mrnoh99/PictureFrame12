@@ -71,9 +71,9 @@ final class LightroomService: PhotoProvider {
 
     func loadImage(for photo: FramePhoto, targetSize: CGSize, completion: @escaping (UIImage?) -> Void) {
         mapLock.lock()
-        let catalogID = assetCatalogMap[photo.id]
+        let catalogIDOpt = assetCatalogMap[photo.id]
         mapLock.unlock()
-        guard let catalogID = catalogID else { completion(nil); return }
+        guard let catalogID = catalogIDOpt else { completion(nil); return }
         api.downloadImage(catalogID: catalogID, assetID: photo.id, targetSize: targetSize) { result in
             switch result {
             case .success(let image): completion(image)

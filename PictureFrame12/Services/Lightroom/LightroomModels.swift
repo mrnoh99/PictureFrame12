@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 struct LightroomCatalog: Decodable { let id: String }
 
@@ -9,7 +10,7 @@ struct LightroomAlbum: Decodable {
     let subtype: String?
     let payload: Payload?
     struct Payload: Decodable { let name: String? }
-    var name: String { payload?.name ?? "제목 없음" }
+    var name: String { return payload?.name ?? "제목 없음" }
 }
 
 struct LightroomAssetList: Decodable { let resources: [LightroomAlbumAssetRef] }

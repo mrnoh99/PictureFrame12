@@ -8,9 +8,9 @@ struct Album: Hashable {
 }
 
 struct AlbumSelection: Codable, Hashable {
-    var id: String { "\(source.rawValue):\(albumID)" }
+    var id: String { return "\(source.rawValue):\(albumID)" }
     let source: PhotoSourceKind
     let albumID: String
     let title: String
-    var catalogID: String?
+    var catalogID: String? = nil
 }
