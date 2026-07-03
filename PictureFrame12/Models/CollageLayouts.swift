@@ -2,7 +2,7 @@ import CoreGraphics
 
 struct CollageTemplate {
     let cells: [CGRect]
-    var count: Int { cells.count }
+    var count: Int { return cells.count }
 }
 
 enum CollageLayouts {
@@ -26,7 +26,7 @@ enum CollageLayouts {
     }
 
     private static func r(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> CGRect {
-        CGRect(x: x, y: y, width: w, height: h)
+        return CGRect(x: x, y: y, width: w, height: h)
     }
 
     private static let two: [CollageTemplate] = [

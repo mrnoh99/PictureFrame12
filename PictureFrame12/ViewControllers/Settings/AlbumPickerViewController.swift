@@ -56,7 +56,7 @@ final class AlbumPickerViewController: UITableViewController {
         }
     }
 
-    override func tableView(_ tv: UITableView, numberOfRowsInSection section: Int) -> Int { albums.count }
+    override func tableView(_ tv: UITableView, numberOfRowsInSection section: Int) -> Int { return albums.count }
 
     override func tableView(_ tv: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tv.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
