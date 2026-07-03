@@ -36,7 +36,6 @@
 		BB000000000000000000001B /* GridGalleryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001B /* GridGalleryViewController.swift */; };
 		BB000000000000000000001C /* AlbumPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001C /* AlbumPickerViewController.swift */; };
 		BB000000000000000000001D /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001D /* SettingsViewController.swift */; };
-		BB000000000000000000001F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001F /* LaunchScreen.storyboard */; };
 		BB0000000000000000000023 /* WeatherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000023 /* WeatherManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -71,7 +70,6 @@
 		AA000000000000000000001C /* AlbumPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumPickerViewController.swift; sourceTree = "<group>"; };
 		AA000000000000000000001D /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		AA000000000000000000001E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		AA000000000000000000001F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AA0000000000000000000020 /* PictureFrame12-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PictureFrame12-Bridging-Header.h"; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* PictureFrame12.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PictureFrame12.entitlements; sourceTree = "<group>"; };
 		AA0000000000000000000022 /* PictureFrame12.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PictureFrame12.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -111,7 +109,6 @@
 				AA0000000000000000000001 /* AppDelegate.swift */,
 				AA0000000000000000000020 /* PictureFrame12-Bridging-Header.h */,
 				AA000000000000000000001E /* Info.plist */,
-				AA000000000000000000001F /* LaunchScreen.storyboard */,
 				AA0000000000000000000021 /* PictureFrame12.entitlements */,
 				CC0000000000000000000003 /* Config */,
 				CC0000000000000000000004 /* Models */,
@@ -269,7 +266,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BB000000000000000000001F /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
