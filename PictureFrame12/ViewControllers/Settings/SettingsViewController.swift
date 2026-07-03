@@ -37,7 +37,7 @@ final class SettingsViewController: UITableViewController {
 
     // MARK: - Table
 
-    override func numberOfSections(in tv: UITableView) -> Int { Section.allCases.count }
+    override func numberOfSections(in tv: UITableView) -> Int { return Section.allCases.count }
 
     override func tableView(_ tv: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section)! {

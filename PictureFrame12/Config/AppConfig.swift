@@ -13,7 +13,7 @@ enum AppConfig {
         static let scopes = "openid,AdobeID,lr_partner_apis,lr_partner_rendition_apis,offline_access"
 
         static var isConfigured: Bool {
-            !clientID.isEmpty && clientID != "YOUR_ADOBE_CLIENT_ID"
+            return !clientID.isEmpty && clientID != "YOUR_ADOBE_CLIENT_ID"
         }
 
         static let partnerApprovalPending = true

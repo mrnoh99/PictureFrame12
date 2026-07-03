@@ -7,7 +7,7 @@ struct FramePhoto: Hashable {
     let creationDate: Date?
     let aspectRatio: CGFloat?
 
-    static func == (lhs: FramePhoto, rhs: FramePhoto) -> Bool { lhs.id == rhs.id }
+    static func == (lhs: FramePhoto, rhs: FramePhoto) -> Bool { return lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
 

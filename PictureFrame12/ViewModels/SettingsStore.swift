@@ -67,7 +67,7 @@ final class SettingsStore {
     }
 
     var isSinglePhotoShow: Bool {
-        min(collageRangeMin, collageRangeMax) == 1 && max(collageRangeMin, collageRangeMax) == 1
+        return min(collageRangeMin, collageRangeMax) == 1 && max(collageRangeMin, collageRangeMax) == 1
     }
 
     func collagePhotoCount(forScene scene: Int) -> Int {

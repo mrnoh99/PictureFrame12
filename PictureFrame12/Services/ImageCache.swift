@@ -37,11 +37,11 @@ final class ImageCache {
     }
 
     private func cost(of image: UIImage) -> Int {
-        Int(image.size.width * image.size.height * image.scale * image.scale * 4)
+        return Int(image.size.width * image.size.height * image.scale * image.scale * 4)
     }
 
     func memoryImage(for id: String, size: CGSize) -> UIImage? {
-        memory.object(forKey: cacheKey(id: id, size: size) as NSString)
+        return memory.object(forKey: cacheKey(id: id, size: size) as NSString)
     }
 
     func storeMemory(_ image: UIImage, for id: String, size: CGSize) {

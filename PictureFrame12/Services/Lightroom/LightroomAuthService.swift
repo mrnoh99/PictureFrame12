@@ -17,7 +17,7 @@ final class LightroomAuthService: NSObject {
     private var accessToken: String?
     private var accessTokenExpiry: Date?
     private var refreshToken: String? {
-        get { KeychainStore.get("lightroom_refresh_token") }
+        get { return KeychainStore.get("lightroom_refresh_token") }
         set { KeychainStore.set(newValue, for: "lightroom_refresh_token") }
     }
 
@@ -135,14 +135,14 @@ final class LightroomAuthService: NSObject {
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
             if let error = error { DispatchQueue.main.async { completion(error) }; return }
-            guard let data = data,
+            guard let responseData = data,
                   let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
                 var body = ""
                 if let d = data, let s = String(data: d, encoding: .utf8) { body = s }
                 DispatchQueue.main.async { completion(PhotoProviderError.server("토큰 요청 실패 (\(body))")); return }
                 return
             }
-            guard let token = try? JSONDecoder().decode(LightroomTokenResponse.self, from: data) else {
+            guard let token = try? JSONDecoder().decode(LightroomTokenResponse.self, from: responseData) else {
                 DispatchQueue.main.async { completion(PhotoProviderError.server("응답 디코딩 실패")) }; return
             }
             self.accessToken = token.accessToken
@@ -198,7 +198,7 @@ extension Notification.Name {
 
 extension Data {
     func base64URLEncoded() -> String {
-        base64EncodedString()
+        return base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
