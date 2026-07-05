@@ -60,8 +60,14 @@ final class RootViewController: UIViewController {
         settingsButton.translatesAutoresizingMaskIntoConstraints = false
         settingsButton.addTarget(self, action: #selector(openSettings), for: .touchUpInside)
         view.addSubview(settingsButton)
+        let topGuide: NSLayoutYAxisAnchor
+        if #available(iOS 11, *) {
+            topGuide = view.safeAreaLayoutGuide.topAnchor
+        } else {
+            topGuide = view.topAnchor
+        }
         NSLayoutConstraint.activate([
-            settingsButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            settingsButton.topAnchor.constraint(equalTo: topGuide, constant: 16),
             settingsButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
         updateControlsVisibility()

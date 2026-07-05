@@ -232,7 +232,6 @@ final class SettingsViewController: UITableViewController {
     private func showFolderPicker() {
         let picker = UIDocumentPickerViewController(documentTypes: ["public.folder"], in: .open)
         picker.delegate = self
-        picker.allowsMultipleSelection = false
         present(picker, animated: true)
     }
 
@@ -288,14 +287,13 @@ final class SettingsViewController: UITableViewController {
     private func showMusicFilePicker() {
         let picker = UIDocumentPickerViewController(documentTypes: ["public.audio"], in: .import)
         picker.delegate = self
-        picker.allowsMultipleSelection = true
+        if #available(iOS 11, *) { picker.allowsMultipleSelection = true }
         present(picker, animated: true)
     }
 
     private func showMusicFolderPicker() {
         let picker = UIDocumentPickerViewController(documentTypes: ["public.folder"], in: .open)
         picker.delegate = self
-        picker.allowsMultipleSelection = false
         present(picker, animated: true)
     }
 }

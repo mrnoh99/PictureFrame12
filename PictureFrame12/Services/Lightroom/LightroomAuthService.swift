@@ -21,7 +21,8 @@ final class LightroomAuthService: NSObject {
         set { KeychainStore.set(newValue, for: "lightroom_refresh_token") }
     }
 
-    private var webAuthSession: ASWebAuthenticationSession?
+    // AnyObject so we don't require @available on the class for ASWebAuthenticationSession
+    private var webAuthSession: AnyObject?
     private var pkceVerifier: String?
     private var pendingSignInCompletion: ((Error?) -> Void)?
 
@@ -56,24 +57,28 @@ final class LightroomAuthService: NSObject {
             completion(PhotoProviderError.server("잘못된 인증 URL")); return
         }
 
-        let session = ASWebAuthenticationSession(
-            url: authURL,
-            callbackURLScheme: AppConfig.Lightroom.callbackScheme
-        ) { [weak self] callbackURL, error in
-            guard let self = self else { return }
-            if let error = error {
-                if let asError = error as? ASWebAuthenticationSessionError,
-                   asError.code == .canceledLogin {
-                    self.finishSignIn(error: nil)
-                } else {
-                    self.finishSignIn(error: error)
+        if #available(iOS 12, *) {
+            let session = ASWebAuthenticationSession(
+                url: authURL,
+                callbackURLScheme: AppConfig.Lightroom.callbackScheme
+            ) { [weak self] callbackURL, error in
+                guard let self = self else { return }
+                if let error = error {
+                    if let asError = error as? ASWebAuthenticationSessionError,
+                       asError.code == .canceledLogin {
+                        self.finishSignIn(error: nil)
+                    } else {
+                        self.finishSignIn(error: error)
+                    }
+                    return
                 }
-                return
+                if let callbackURL = callbackURL { self.exchangeCode(from: callbackURL) }
             }
-            if let callbackURL = callbackURL { self.exchangeCode(from: callbackURL) }
+            webAuthSession = session
+            session.start()
+        } else {
+            finishSignIn(error: PhotoProviderError.server("Lightroom 로그인은 iOS 12 이상이 필요합니다"))
         }
-        webAuthSession = session
-        session.start()
     }
 
     func signOut() {
