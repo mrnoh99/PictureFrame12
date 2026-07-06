@@ -192,8 +192,8 @@ final class SettingsViewController: UITableViewController {
             return cell
         case 3:
             let cell = tv.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-            cell.textLabel?.text = "음악 폴더: \(settings.musicFolderName ?? "없음")"
-            cell.accessoryType = .disclosureIndicator
+            cell.textLabel?.text = "+ 음악 폴더에서 가져오기"
+            cell.textLabel?.textColor = UIColor(red: 0.0, green: 0.478, blue: 1.0, alpha: 1.0)
             return cell
         default:
             return tv.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
@@ -248,26 +248,18 @@ final class SettingsViewController: UITableViewController {
         present(nav, animated: true)
     }
 
-    // Opens the Files-app folder picker (.open mode returns a security-scoped
-    // directory URL; FolderPhotoService resolves it via a stored bookmark).
-    // Requires at least one Files location to be active on the device:
-    // iCloud Drive, or enable "On My iPad" in Files → Browse → ⋮ Edit.
+    // iOS 12 note: UIDocumentPickerViewController with "public.folder" + .open mode
+    // does not reliably fire the delegate (the Done button stays disabled or the
+    // callback is never called). Use .import mode with explicit image UTIs instead:
+    // the user navigates to a folder, selects the photos they want, and we copy
+    // them into the app sandbox via addImportedPhotos.
     private func showFolderPicker() {
-        let alert = UIAlertController(
-            title: "폴더 선택 안내",
-            message: "Files 앱에서 폴더를 선택합니다.\n\n폴더가 보이지 않으면 Files 앱 → 탐색 → ⋮ 수정 에서 \"iPad\"를 활성화하세요.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "폴더 선택", style: .default) { [weak self] _ in
-            self?.presentFolderDocumentPicker()
-        })
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        present(alert, animated: true)
-    }
-
-    private func presentFolderDocumentPicker() {
-        let picker = UIDocumentPickerViewController(documentTypes: ["public.folder"], in: .open)
+        let picker = UIDocumentPickerViewController(
+            documentTypes: ["public.image", "public.jpeg", "public.png",
+                            "public.tiff", "com.apple.photo"],
+            in: .import)
         picker.delegate = self
+        if #available(iOS 11, *) { picker.allowsMultipleSelection = true }
         present(picker, animated: true)
     }
 
@@ -336,9 +328,15 @@ final class SettingsViewController: UITableViewController {
         present(picker, animated: true)
     }
 
+    // Same as showMusicFilePicker but lists common audio UTIs explicitly so
+    // more file types appear on iOS 12.
     private func showMusicFolderPicker() {
-        let picker = UIDocumentPickerViewController(documentTypes: ["public.folder"], in: .open)
+        let picker = UIDocumentPickerViewController(
+            documentTypes: ["public.audio", "public.mp3", "com.apple.m4a-audio",
+                            "public.aiff-audio", "public.aifc-audio"],
+            in: .import)
         picker.delegate = self
+        if #available(iOS 11, *) { picker.allowsMultipleSelection = true }
         present(picker, animated: true)
     }
 }
@@ -355,21 +353,31 @@ extension SettingsViewController: AlbumPickerDelegate {
 // MARK: - UIDocumentPickerDelegate
 extension SettingsViewController: UIDocumentPickerDelegate {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        for url in urls {
-            if url.hasDirectoryPath {
-                // Folder selected via public.folder picker — store a security-scoped bookmark
-                try? settings.addFolderAlbum(url: url)
-            } else {
-                // Audio file (from music picker)
-                let fm = FileManager.default
-                let dest = SettingsStore.musicDirectory.appendingPathComponent(url.lastPathComponent)
-                try? fm.copyItem(at: url, to: dest)
-                if !settings.musicTracks.contains(url.lastPathComponent) {
-                    settings.musicTracks.append(url.lastPathComponent)
-                }
+        let imageExts: Set<String> = ["jpg", "jpeg", "png", "heic", "heif", "gif", "tiff", "tif", "bmp", "webp"]
+        let audioExts: Set<String> = ["mp3", "m4a", "aac", "wav", "aiff", "aifc", "caf"]
+
+        let imageURLs = urls.filter { imageExts.contains($0.pathExtension.lowercased()) }
+        let audioURLs = urls.filter { audioExts.contains($0.pathExtension.lowercased()) }
+
+        if !imageURLs.isEmpty {
+            try? settings.addImportedPhotos(urls: imageURLs)
+        }
+        for url in audioURLs {
+            let dest = SettingsStore.musicDirectory.appendingPathComponent(url.lastPathComponent)
+            try? FileManager.default.copyItem(at: url, to: dest)
+            if !settings.musicTracks.contains(url.lastPathComponent) {
+                settings.musicTracks.append(url.lastPathComponent)
             }
         }
+        if let first = audioURLs.first {
+            settings.musicFolderName = first.deletingLastPathComponent().lastPathComponent
+        }
         tableView.reloadData()
+    }
+
+    // Deprecated iOS 8 fallback — iOS 12 may call this instead of didPickDocumentsAt
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
+        documentPicker(controller, didPickDocumentsAt: [url])
     }
 }
 

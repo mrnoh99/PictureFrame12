@@ -1,6 +1,6 @@
 import UIKit
 
-/// Floating clock + date + weather overlay pinned to the upper-right corner
+/// Floating clock + date + weather overlay pinned to the upper-left corner
 /// behind a frosted glass pill (UIBlurEffect, available iOS 8+).
 final class ClockOverlayView: UIView {
     private let timeLabel    = UILabel()
@@ -83,7 +83,7 @@ final class ClockOverlayView: UIView {
 
         addSubview(pill)
 
-        // Pin pill to upper-right, respecting safe area on iOS 11+
+        // Pin pill to upper-left, respecting safe area on iOS 11+
         let topRef: NSLayoutYAxisAnchor
         if #available(iOS 11, *) {
             topRef = safeAreaLayoutGuide.topAnchor
@@ -92,7 +92,7 @@ final class ClockOverlayView: UIView {
         }
         NSLayoutConstraint.activate([
             pill.topAnchor.constraint(equalTo: topRef, constant: 16),
-            pill.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            pill.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
         ])
     }
 
