@@ -37,6 +37,7 @@
 		BB000000000000000000001C /* AlbumPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001C /* AlbumPickerViewController.swift */; };
 		BB000000000000000000001D /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001D /* SettingsViewController.swift */; };
 		BB0000000000000000000023 /* WeatherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000023 /* WeatherManager.swift */; };
+		BB0000000000000000000024 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000024 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -74,6 +75,7 @@
 		AA0000000000000000000021 /* PictureFrame12.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PictureFrame12.entitlements; sourceTree = "<group>"; };
 		AA0000000000000000000022 /* PictureFrame12.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PictureFrame12.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000023 /* WeatherManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherManager.swift; sourceTree = "<group>"; };
+		AA0000000000000000000024 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +112,7 @@
 				AA0000000000000000000020 /* PictureFrame12-Bridging-Header.h */,
 				AA000000000000000000001E /* Info.plist */,
 				AA0000000000000000000021 /* PictureFrame12.entitlements */,
+				AA0000000000000000000024 /* Assets.xcassets */,
 				CC0000000000000000000003 /* Config */,
 				CC0000000000000000000004 /* Models */,
 				CC0000000000000000000005 /* Services */,
@@ -266,6 +269,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB0000000000000000000024 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,6 +361,7 @@
 		DD000000000000000000000A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSTCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = PictureFrame12/PictureFrame12.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -380,6 +385,7 @@
 		DD000000000000000000000B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSTCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = PictureFrame12/PictureFrame12.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
