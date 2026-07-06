@@ -9,7 +9,7 @@ enum DisplayMode: String, CaseIterable, Codable {
 
     var displayName: String {
         switch self {
-        case .slideshow: return "슬라이드쿼"
+        case .slideshow: return "슬라이드쇼"
         case .collage:   return "콜라주"
         case .grid:      return "그리드"
         }
