@@ -430,9 +430,10 @@ final class SliderCell: UITableViewCell {
         selectionStyle = .none
         slider.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(slider)
+        // Slider pinned to right side, width = 40% of cell (roughly half the original)
         NSLayoutConstraint.activate([
-            slider.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 120),
             slider.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            slider.widthAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.40),
             slider.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
         ])
         slider.addTarget(self, action: #selector(slid), for: .valueChanged)
