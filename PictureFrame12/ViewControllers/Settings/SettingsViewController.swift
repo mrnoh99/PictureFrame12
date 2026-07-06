@@ -45,7 +45,7 @@ final class SettingsViewController: UITableViewController {
         case .display:   return 1
         case .slideshow: return 5
         case .music:     return settings.musicEnabled ? 4 : 1
-        case .overlay:   return 3  // clock, weather, always-show-controls
+        case .overlay:   return 3
         }
     }
 
@@ -75,10 +75,11 @@ final class SettingsViewController: UITableViewController {
 
     override func tableView(_ tv: UITableView, didSelectRowAt indexPath: IndexPath) {
         tv.deselectRow(at: indexPath, animated: true)
+        let sourceCell = tv.cellForRow(at: indexPath)
         switch Section(rawValue: indexPath.section)! {
         case .albums:    handleAlbumTap(at: indexPath)
-        case .display:   showDisplayModePicker()
-        case .slideshow: handleSlideshowTap(at: indexPath)
+        case .display:   showDisplayModePicker(from: sourceCell)
+        case .slideshow: handleSlideshowTap(at: indexPath, from: sourceCell)
         case .music:     handleMusicTap(at: indexPath)
         case .overlay:   break
         }
@@ -235,7 +236,7 @@ final class SettingsViewController: UITableViewController {
         present(picker, animated: true)
     }
 
-    private func showDisplayModePicker() {
+    private func showDisplayModePicker(from sourceCell: UITableViewCell?) {
         let sheet = UIAlertController(title: "표시 모드", message: nil, preferredStyle: .actionSheet)
         for mode in DisplayMode.selectableCases {
             sheet.addAction(UIAlertAction(title: mode.displayName, style: .default) { [weak self] _ in
@@ -244,16 +245,19 @@ final class SettingsViewController: UITableViewController {
             })
         }
         sheet.addAction(UIAlertAction(title: "취소", style: .cancel))
-        if let pop = sheet.popoverPresentationController { pop.sourceView = tableView }
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = sourceCell ?? tableView
+            pop.sourceRect = sourceCell?.bounds ?? CGRect(x: tableView.bounds.midX, y: 0, width: 1, height: 1)
+        }
         present(sheet, animated: true)
     }
 
-    private func handleSlideshowTap(at indexPath: IndexPath) {
-        if indexPath.row == 3 { showTransitionPicker() }
-        else if indexPath.row == 4 { showFitStylePicker() }
+    private func handleSlideshowTap(at indexPath: IndexPath, from sourceCell: UITableViewCell?) {
+        if indexPath.row == 3 { showTransitionPicker(from: sourceCell) }
+        else if indexPath.row == 4 { showFitStylePicker(from: sourceCell) }
     }
 
-    private func showTransitionPicker() {
+    private func showTransitionPicker(from sourceCell: UITableViewCell?) {
         let sheet = UIAlertController(title: "전환 효과", message: nil, preferredStyle: .actionSheet)
         for t in SlideTransition.allCases {
             sheet.addAction(UIAlertAction(title: t.displayName, style: .default) { [weak self] _ in
@@ -262,11 +266,14 @@ final class SettingsViewController: UITableViewController {
             })
         }
         sheet.addAction(UIAlertAction(title: "취소", style: .cancel))
-        if let pop = sheet.popoverPresentationController { pop.sourceView = tableView }
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = sourceCell ?? tableView
+            pop.sourceRect = sourceCell?.bounds ?? CGRect(x: tableView.bounds.midX, y: 0, width: 1, height: 1)
+        }
         present(sheet, animated: true)
     }
 
-    private func showFitStylePicker() {
+    private func showFitStylePicker(from sourceCell: UITableViewCell?) {
         let sheet = UIAlertController(title: "선택 채우기", message: nil, preferredStyle: .actionSheet)
         for style in CollageFitStyle.allCases {
             sheet.addAction(UIAlertAction(title: style.displayName, style: .default) { [weak self] _ in
@@ -275,7 +282,10 @@ final class SettingsViewController: UITableViewController {
             })
         }
         sheet.addAction(UIAlertAction(title: "취소", style: .cancel))
-        if let pop = sheet.popoverPresentationController { pop.sourceView = tableView }
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = sourceCell ?? tableView
+            pop.sourceRect = sourceCell?.bounds ?? CGRect(x: tableView.bounds.midX, y: 0, width: 1, height: 1)
+        }
         present(sheet, animated: true)
     }
 
@@ -358,9 +368,13 @@ final class StepperCell: UITableViewCell {
         selectionStyle = .none
         valueLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 15, weight: .regular)
         valueLabel.textColor = .gray
-        let stack = UIStackView(arrangedSubviews: [valueLabel, stepper])
-        stack.spacing = 8
-        accessoryView = stack
+        valueLabel.textAlignment = .right
+        valueLabel.frame = CGRect(x: 0, y: 0, width: 36, height: 44)
+        stepper.frame = CGRect(x: 44, y: 4, width: 94, height: 36)
+        let container = UIView(frame: CGRect(x: 0, y: 0, width: 144, height: 44))
+        container.addSubview(valueLabel)
+        container.addSubview(stepper)
+        accessoryView = container
         stepper.addTarget(self, action: #selector(stepped), for: .valueChanged)
     }
     required init?(coder: NSCoder) { fatalError() }
