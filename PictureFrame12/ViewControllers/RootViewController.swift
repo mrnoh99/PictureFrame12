@@ -89,7 +89,7 @@ final class RootViewController: UIViewController {
     @objc private func openSettings() {
         let vc = SettingsViewController(settings: settings, audioPlayer: audioPlayer, lightroomAuth: lightroomAuth)
         let nav = UINavigationController(rootViewController: vc)
-        nav.modalPresentationStyle = .formSheet
+        nav.modalPresentationStyle = .fullScreen
         present(nav, animated: true)
     }
 
