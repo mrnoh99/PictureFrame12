@@ -185,6 +185,34 @@ final class SettingsStore {
         folderBookmarks[albumID] = bookmark
         addAlbum(AlbumSelection(source: .folder, albumID: albumID, title: url.lastPathComponent))
     }
+
+    // Copies image files (from UIDocumentPicker .import mode) into Documents/ImportedPhotos/
+    // and maintains a single persistent folder album for them.
+    func addImportedPhotos(urls: [URL]) throws {
+        let fm = FileManager.default
+        let docsDir = fm.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let photosDir = docsDir.appendingPathComponent("ImportedPhotos", isDirectory: true)
+        try fm.createDirectory(at: photosDir, withIntermediateDirectories: true)
+        for url in urls {
+            var dest = photosDir.appendingPathComponent(url.lastPathComponent)
+            if fm.fileExists(atPath: dest.path) {
+                let base = (url.lastPathComponent as NSString).deletingPathExtension
+                let ext = url.pathExtension
+                let suffix = String(UUID().uuidString.prefix(8))
+                dest = photosDir.appendingPathComponent("\(base)_\(suffix).\(ext)")
+            }
+            try? fm.copyItem(at: url, to: dest)
+        }
+        let albumID = "imported-photos"
+        if let bookmark = try? photosDir.bookmarkData(options: [],
+                                                       includingResourceValuesForKeys: nil,
+                                                       relativeTo: nil) {
+            folderBookmarks[albumID] = bookmark
+        }
+        if !selectedAlbums.contains(where: { $0.albumID == albumID }) {
+            addAlbum(AlbumSelection(source: .folder, albumID: albumID, title: "가져온 사진"))
+        }
+    }
 }
 
 private extension Double { var nonZero: Double? { return self == 0 ? nil : self } }
