@@ -108,7 +108,7 @@ final class SettingsViewController: UITableViewController {
             cell.textLabel?.text = settings.selectedAlbums[indexPath.row].title
             cell.accessoryType = .none
         } else {
-            let actions = ["+  iOS 사진에서 선택", "+ Lightroom에서 선택", "+ 사진 파일 가져오기"]
+            let actions = ["+  iOS 사진에서 선택", "+ Lightroom에서 선택", "+ 폴더에서 선택"]
             cell.textLabel?.text = actions[indexPath.row - addOffset]
             cell.textLabel?.textColor = UIColor(red: 0.0, green: 0.478, blue: 1.0, alpha: 1.0)
             cell.accessoryType = .none
@@ -248,14 +248,26 @@ final class SettingsViewController: UITableViewController {
         present(nav, animated: true)
     }
 
-    // Uses .import mode so the document picker shows all files (not just folders).
-    // Picked images are copied into Documents/ImportedPhotos/ by addImportedPhotos.
+    // Opens the Files-app folder picker (.open mode returns a security-scoped
+    // directory URL; FolderPhotoService resolves it via a stored bookmark).
+    // Requires at least one Files location to be active on the device:
+    // iCloud Drive, or enable "On My iPad" in Files → Browse → ⋮ Edit.
     private func showFolderPicker() {
-        let imageTypes = ["public.image", "public.jpeg", "public.png",
-                          "public.heif", "com.compuserve.gif"]
-        let picker = UIDocumentPickerViewController(documentTypes: imageTypes, in: .import)
+        let alert = UIAlertController(
+            title: "폴더 선택 안내",
+            message: "Files 앱에서 폴더를 선택합니다.\n\n폴더가 보이지 않으면 Files 앱 → 탐색 → ⋮ 수정 에서 \"iPad\"를 활성화하세요.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "폴더 선택", style: .default) { [weak self] _ in
+            self?.presentFolderDocumentPicker()
+        })
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+        present(alert, animated: true)
+    }
+
+    private func presentFolderDocumentPicker() {
+        let picker = UIDocumentPickerViewController(documentTypes: ["public.folder"], in: .open)
         picker.delegate = self
-        if #available(iOS 11, *) { picker.allowsMultipleSelection = true }
         present(picker, animated: true)
     }
 
@@ -343,14 +355,12 @@ extension SettingsViewController: AlbumPickerDelegate {
 // MARK: - UIDocumentPickerDelegate
 extension SettingsViewController: UIDocumentPickerDelegate {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        let imageExts: Set<String> = ["jpg","jpeg","png","heic","heif","gif","tiff","tif","bmp","webp"]
-        var photos: [URL] = []
         for url in urls {
             if url.hasDirectoryPath {
+                // Folder selected via public.folder picker — store a security-scoped bookmark
                 try? settings.addFolderAlbum(url: url)
-            } else if imageExts.contains(url.pathExtension.lowercased()) {
-                photos.append(url)
             } else {
+                // Audio file (from music picker)
                 let fm = FileManager.default
                 let dest = SettingsStore.musicDirectory.appendingPathComponent(url.lastPathComponent)
                 try? fm.copyItem(at: url, to: dest)
@@ -359,7 +369,6 @@ extension SettingsViewController: UIDocumentPickerDelegate {
                 }
             }
         }
-        if !photos.isEmpty { try? settings.addImportedPhotos(urls: photos) }
         tableView.reloadData()
     }
 }
