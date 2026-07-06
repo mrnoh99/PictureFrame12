@@ -1,6 +1,7 @@
 import UIKit
 
-/// Floating clock + date + weather overlay (replaces SwiftUI TimelineView).
+/// Floating clock + date + weather overlay pinned to the upper-right corner
+/// behind a frosted glass pill (UIBlurEffect, available iOS 8+).
 final class ClockOverlayView: UIView {
     private let timeLabel    = UILabel()
     private let dateLabel    = UILabel()
@@ -31,41 +32,68 @@ final class ClockOverlayView: UIView {
     // MARK: - Setup
 
     private func setupLabels() {
-        timeLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 48, weight: .thin)
+        timeLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 44, weight: .thin)
         timeLabel.textColor = .white
         timeLabel.textAlignment = .center
-        applyShadow(timeLabel, opacity: 0.6, radius: 4)
 
-        dateLabel.font = UIFont.systemFont(ofSize: 16, weight: .light)
+        dateLabel.font = UIFont.systemFont(ofSize: 13, weight: .light)
         dateLabel.textColor = UIColor.white.withAlphaComponent(0.85)
         dateLabel.textAlignment = .center
-        applyShadow(dateLabel, opacity: 0.5, radius: 3)
 
-        weatherLabel.font = UIFont.systemFont(ofSize: 18, weight: .regular)
+        weatherLabel.font = UIFont.systemFont(ofSize: 15, weight: .regular)
         weatherLabel.textColor = UIColor.white.withAlphaComponent(0.90)
         weatherLabel.textAlignment = .center
         weatherLabel.isHidden = true
-        applyShadow(weatherLabel, opacity: 0.5, radius: 3)
     }
 
     private func setupLayout() {
+        // Frosted glass pill container
+        let pill = UIView()
+        pill.layer.cornerRadius = 16
+        pill.clipsToBounds = true
+        pill.translatesAutoresizingMaskIntoConstraints = false
+
+        // Dark frosted blur (UIBlurEffect available since iOS 8)
+        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
+        blur.frame = pill.bounds
+        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        pill.addSubview(blur)
+
+        // Subtle dark tint over blur for extra contrast
+        let tint = UIView()
+        tint.backgroundColor = UIColor.black.withAlphaComponent(0.18)
+        tint.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        tint.frame = pill.bounds
+        pill.addSubview(tint)
+
+        // Vertical label stack
         let stack = UIStackView(arrangedSubviews: [timeLabel, dateLabel, weatherLabel])
         stack.axis      = .vertical
-        stack.spacing   = 6
+        stack.spacing   = 3
         stack.alignment = .center
         stack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(stack)
-        NSLayoutConstraint.activate([
-            stack.centerXAnchor.constraint(equalTo: centerXAnchor),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20)
-        ])
-    }
+        pill.addSubview(stack)
 
-    private func applyShadow(_ label: UILabel, opacity: Float, radius: CGFloat) {
-        label.layer.shadowColor   = UIColor.black.cgColor
-        label.layer.shadowOpacity = opacity
-        label.layer.shadowRadius  = radius
-        label.layer.shadowOffset  = CGSize(width: 1, height: 1)
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: pill.topAnchor, constant: 12),
+            stack.bottomAnchor.constraint(equalTo: pill.bottomAnchor, constant: -12),
+            stack.leadingAnchor.constraint(equalTo: pill.leadingAnchor, constant: 14),
+            stack.trailingAnchor.constraint(equalTo: pill.trailingAnchor, constant: -14),
+        ])
+
+        addSubview(pill)
+
+        // Pin pill to upper-right, respecting safe area on iOS 11+
+        let topRef: NSLayoutYAxisAnchor
+        if #available(iOS 11, *) {
+            topRef = safeAreaLayoutGuide.topAnchor
+        } else {
+            topRef = topAnchor
+        }
+        NSLayoutConstraint.activate([
+            pill.topAnchor.constraint(equalTo: topRef, constant: 16),
+            pill.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+        ])
     }
 
     // MARK: - Clock
@@ -101,21 +129,20 @@ final class ClockOverlayView: UIView {
         weatherLabel.isHidden = false
     }
 
-    // Symbol key -> emoji (works on all iOS versions)
     private static func emoji(for symbol: String) -> String {
         switch symbol {
-        case "sun.max":          return "\u{2600}\u{FE0F}"  // ☀️
-        case "cloud.sun":        return "\u{26C5}"           // ⛅
-        case "cloud", "cloud.fill": return "\u{2601}\u{FE0F}" // ☁️
-        case "cloud.fog":        return "\u{1F32B}"          // 🌫
-        case "cloud.drizzle":    return "\u{1F326}"          // 🌦
-        case "cloud.sleet":      return "\u{1F328}"          // 🌨
-        case "cloud.rain":       return "\u{1F327}"          // 🌧
-        case "cloud.snow":       return "\u{2744}\u{FE0F}"   // ❄️
-        case "cloud.heavyrain":  return "\u{26C8}"           // ⛈
-        case "cloud.bolt":       return "\u{1F329}"          // 🌩
-        case "cloud.bolt.rain":  return "\u{26C8}"           // ⛈
-        default:                 return "\u{1F321}"          // 🌡
+        case "sun.max":             return "\u{2600}\u{FE0F}"  // ☀️
+        case "cloud.sun":           return "\u{26C5}"           // ⛅
+        case "cloud", "cloud.fill": return "\u{2601}\u{FE0F}"  // ☁️
+        case "cloud.fog":           return "\u{1F32B}"          // 🌫
+        case "cloud.drizzle":       return "\u{1F326}"          // 🌦
+        case "cloud.sleet":         return "\u{1F328}"          // 🌨
+        case "cloud.rain":          return "\u{1F327}"          // 🌧
+        case "cloud.snow":          return "\u{2744}\u{FE0F}"   // ❄️
+        case "cloud.heavyrain":     return "\u{26C8}"           // ⛈
+        case "cloud.bolt":          return "\u{1F329}"          // 🌩
+        case "cloud.bolt.rain":     return "\u{26C8}"           // ⛈
+        default:                    return "\u{1F321}"          // 🌡
         }
     }
 }
