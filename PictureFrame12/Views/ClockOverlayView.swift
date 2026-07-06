@@ -1,7 +1,7 @@
 import UIKit
 
 /// Floating clock + date + weather overlay pinned to the upper-left corner
-/// behind a frosted glass pill (UIBlurEffect, available iOS 8+).
+/// behind a semi-transparent dark pill.
 final class ClockOverlayView: UIView {
     private let timeLabel    = UILabel()
     private let dateLabel    = UILabel()
@@ -47,24 +47,12 @@ final class ClockOverlayView: UIView {
     }
 
     private func setupLayout() {
-        // Frosted glass pill container
         let pill = UIView()
         pill.layer.cornerRadius = 16
         pill.clipsToBounds = true
         pill.translatesAutoresizingMaskIntoConstraints = false
-
-        // Dark frosted blur (UIBlurEffect available since iOS 8)
-        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
-        blur.frame = pill.bounds
-        blur.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        pill.addSubview(blur)
-
-        // Subtle dark tint over blur for extra contrast
-        let tint = UIView()
-        tint.backgroundColor = UIColor.black.withAlphaComponent(0.18)
-        tint.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        tint.frame = pill.bounds
-        pill.addSubview(tint)
+        // Semi-transparent background — more see-through than a UIBlurEffect(.dark)
+        pill.backgroundColor = UIColor.black.withAlphaComponent(0.30)
 
         // Vertical label stack
         let stack = UIStackView(arrangedSubviews: [timeLabel, dateLabel, weatherLabel])
@@ -131,18 +119,18 @@ final class ClockOverlayView: UIView {
 
     private static func emoji(for symbol: String) -> String {
         switch symbol {
-        case "sun.max":             return "\u{2600}\u{FE0F}"  // ☀️
-        case "cloud.sun":           return "\u{26C5}"           // ⛅
-        case "cloud", "cloud.fill": return "\u{2601}\u{FE0F}"  // ☁️
-        case "cloud.fog":           return "\u{1F32B}"          // 🌫
-        case "cloud.drizzle":       return "\u{1F326}"          // 🌦
-        case "cloud.sleet":         return "\u{1F328}"          // 🌨
-        case "cloud.rain":          return "\u{1F327}"          // 🌧
-        case "cloud.snow":          return "\u{2744}\u{FE0F}"   // ❄️
-        case "cloud.heavyrain":     return "\u{26C8}"           // ⛈
-        case "cloud.bolt":          return "\u{1F329}"          // 🌩
-        case "cloud.bolt.rain":     return "\u{26C8}"           // ⛈
-        default:                    return "\u{1F321}"          // 🌡
+        case "sun.max":             return "\u{2600}\u{FE0F}"
+        case "cloud.sun":           return "\u{26C5}"
+        case "cloud", "cloud.fill": return "\u{2601}\u{FE0F}"
+        case "cloud.fog":           return "\u{1F32B}"
+        case "cloud.drizzle":       return "\u{1F326}"
+        case "cloud.sleet":         return "\u{1F328}"
+        case "cloud.rain":          return "\u{1F327}"
+        case "cloud.snow":          return "\u{2744}\u{FE0F}"
+        case "cloud.heavyrain":     return "\u{26C8}"
+        case "cloud.bolt":          return "\u{1F329}"
+        case "cloud.bolt.rain":     return "\u{26C8}"
+        default:                    return "\u{1F321}"
         }
     }
 }
