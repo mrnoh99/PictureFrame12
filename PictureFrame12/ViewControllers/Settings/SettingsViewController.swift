@@ -246,7 +246,7 @@ final class SettingsViewController: UITableViewController {
             let trackIndex = indexPath.row - 4
             let name = trackIndex < musicTrackRows.count ? musicTrackRows[trackIndex] : ""
             cell.textLabel?.text = "🎵 \((name as NSString).deletingPathExtension)"
-            cell.textLabel?.textColor = .label
+            cell.textLabel?.textColor = .black
             return cell
         }
     }
