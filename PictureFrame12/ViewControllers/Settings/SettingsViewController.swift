@@ -248,18 +248,15 @@ final class SettingsViewController: UITableViewController {
         present(nav, animated: true)
     }
 
-    // iOS 12 note: UIDocumentPickerViewController with "public.folder" + .open mode
-    // does not reliably fire the delegate (the Done button stays disabled or the
-    // callback is never called). Use .import mode with explicit image UTIs instead:
-    // the user navigates to a folder, selects the photos they want, and we copy
-    // them into the app sandbox via addImportedPhotos.
+    // Lets the user pick an entire folder (not individual files): the Files
+    // browser opens in folder-selection mode, and tapping "열기(Open)" on a
+    // folder selects that folder itself. The folder URL is stored as a
+    // security-scoped bookmark (SettingsStore.addFolderAlbum) and its contents
+    // are read live by FolderPhotoService — nothing is copied into the app.
     private func showFolderPicker() {
-        let picker = UIDocumentPickerViewController(
-            documentTypes: ["public.image", "public.jpeg", "public.png",
-                            "public.tiff", "com.apple.photo"],
-            in: .import)
+        let picker = UIDocumentPickerViewController(documentTypes: ["public.folder"], in: .open)
         picker.delegate = self
-        if #available(iOS 11, *) { picker.allowsMultipleSelection = true }
+        if #available(iOS 11, *) { picker.allowsMultipleSelection = false }
         present(picker, animated: true)
     }
 
@@ -339,6 +336,14 @@ final class SettingsViewController: UITableViewController {
         if #available(iOS 11, *) { picker.allowsMultipleSelection = true }
         present(picker, animated: true)
     }
+
+    private func showFolderAddError(_ error: Error) {
+        let alert = UIAlertController(title: "폴더를 추가할 수 없습니다",
+                                       message: error.localizedDescription,
+                                       preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
+    }
 }
 
 // MARK: - AlbumPickerDelegate
@@ -353,6 +358,23 @@ extension SettingsViewController: AlbumPickerDelegate {
 // MARK: - UIDocumentPickerDelegate
 extension SettingsViewController: UIDocumentPickerDelegate {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        // Folder selection (showFolderPicker): the picked URL is a directory —
+        // bookmark it and let FolderPhotoService read its photos live.
+        if let folderURL = urls.first {
+            var isDir: ObjCBool = false
+            if FileManager.default.fileExists(atPath: folderURL.path, isDirectory: &isDir), isDir.boolValue {
+                do {
+                    try settings.addFolderAlbum(url: folderURL)
+                } catch {
+                    showFolderAddError(error)
+                }
+                tableView.reloadData()
+                return
+            }
+        }
+
+        // File selection (photo/audio import): copy the picked files into the
+        // app sandbox, as before.
         let imageExts: Set<String> = ["jpg", "jpeg", "png", "heic", "heif", "gif", "tiff", "tif", "bmp", "webp"]
         let audioExts: Set<String> = ["mp3", "m4a", "aac", "wav", "aiff", "aifc", "caf"]
 
