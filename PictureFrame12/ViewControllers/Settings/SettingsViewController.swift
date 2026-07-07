@@ -382,7 +382,7 @@ final class SettingsViewController: UITableViewController {
         pickerContext = .musicFile
         let picker = UIDocumentPickerViewController(
             documentTypes: ["public.audio", "public.mp3", "com.apple.m4a-audio",
-                            "public.aiff-audio", "public.aifc-audio"],
+                            "public.aiff-audio", "public.aifc-audio", "org.xiph.flac"],
             in: .import)
         picker.delegate = self
         if #available(iOS 11, *) { picker.allowsMultipleSelection = true }
@@ -398,7 +398,7 @@ final class SettingsViewController: UITableViewController {
         pickerContext = .musicFolder
         let picker = UIDocumentPickerViewController(
             documentTypes: ["public.folder", "public.audio", "public.mp3", "com.apple.m4a-audio",
-                            "public.aiff-audio", "public.aifc-audio"],
+                            "public.aiff-audio", "public.aifc-audio", "org.xiph.flac"],
             in: .import)
         picker.delegate = self
         if #available(iOS 11, *) { picker.allowsMultipleSelection = true }
@@ -413,7 +413,10 @@ final class SettingsViewController: UITableViewController {
         present(alert, animated: true)
     }
 
-    private static let audioExtensions: Set<String> = ["mp3", "m4a", "aac", "wav", "aiff", "aifc", "caf"]
+    // FLAC included: native FLAC decoding has been supported by CoreAudio /
+    // AVAudioPlayer since iOS 11, so it plays fine once actually imported —
+    // it just needs to be in this list to survive the import filter below.
+    private static let audioExtensions: Set<String> = ["mp3", "m4a", "aac", "wav", "aiff", "aifc", "caf", "flac"]
     private static let imageExtensions: Set<String> = ["jpg", "jpeg", "png", "heic", "heif", "gif", "tiff", "tif", "bmp", "webp"]
 
     // Recursively collects files with one of the given extensions from a
