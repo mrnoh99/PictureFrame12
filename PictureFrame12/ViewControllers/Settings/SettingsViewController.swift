@@ -49,12 +49,21 @@ final class SettingsViewController: UITableViewController {
 
     override func numberOfSections(in tv: UITableView) -> Int { return Section.allCases.count }
 
+    // Music section rows when enabled: 0 toggle, 1 volume, 2 "+file", 3
+    // "+folder", then one row per imported track (musicRowsCount - 4 of them).
+    private var musicTrackRows: [String] {
+        return settings.musicTracks + settings.musicFolderTracks
+    }
+    private var musicRowsCount: Int {
+        return settings.musicEnabled ? 4 + musicTrackRows.count : 1
+    }
+
     override func tableView(_ tv: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section)! {
         case .albums:    return settings.selectedAlbums.count + 3
         case .display:   return 1
         case .slideshow: return 7
-        case .music:     return settings.musicEnabled ? 4 : 1
+        case .music:     return musicRowsCount
         case .overlay:   return 3
         }
     }
@@ -96,16 +105,38 @@ final class SettingsViewController: UITableViewController {
     }
 
     override func tableView(_ tv: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        guard Section(rawValue: indexPath.section) == .albums else { return false }
-        return indexPath.row < settings.selectedAlbums.count
+        if Section(rawValue: indexPath.section) == .albums {
+            return indexPath.row < settings.selectedAlbums.count
+        }
+        if Section(rawValue: indexPath.section) == .music {
+            return indexPath.row >= 4 && indexPath.row < musicRowsCount
+        }
+        return false
     }
 
     override func tableView(_ tv: UITableView, commit editingStyle: UITableViewCell.EditingStyle,
                              forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete, Section(rawValue: indexPath.section) == .albums,
-           indexPath.row < settings.selectedAlbums.count {
+        guard editingStyle == .delete else { return }
+        switch Section(rawValue: indexPath.section)! {
+        case .albums where indexPath.row < settings.selectedAlbums.count:
             settings.removeAlbum(settings.selectedAlbums[indexPath.row])
             tv.deleteRows(at: [indexPath], with: .automatic)
+        case .music where indexPath.row >= 4:
+            removeMusicTrack(at: indexPath.row - 4)
+            tv.deleteRows(at: [indexPath], with: .automatic)
+        default: break
+        }
+    }
+
+    private func removeMusicTrack(at trackIndex: Int) {
+        if trackIndex < settings.musicTracks.count {
+            let name = settings.musicTracks.remove(at: trackIndex)
+            try? FileManager.default.removeItem(at: SettingsStore.musicDirectory.appendingPathComponent(name))
+        } else {
+            let folderIndex = trackIndex - settings.musicTracks.count
+            guard folderIndex < settings.musicFolderTracks.count else { return }
+            let name = settings.musicFolderTracks.remove(at: folderIndex)
+            try? FileManager.default.removeItem(at: SettingsStore.musicDirectory.appendingPathComponent(name))
         }
     }
 
@@ -202,11 +233,21 @@ final class SettingsViewController: UITableViewController {
             return cell
         case 3:
             let cell = tv.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-            cell.textLabel?.text = "+ 음악 폴더에서 가져오기"
+            let name = settings.musicFolderName.map { " (\($0))" } ?? ""
+            cell.textLabel?.text = "+ 음악 폴더에서 가져오기\(name)"
             cell.textLabel?.textColor = UIColor(red: 0.0, green: 0.478, blue: 1.0, alpha: 1.0)
             return cell
         default:
-            return tv.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+            // One row per imported track (musicTracks then musicFolderTracks),
+            // so the user can see and swipe-to-delete what was actually added —
+            // this is what was missing before: picking succeeded but nothing
+            // ever showed up in the list.
+            let cell = tv.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+            let trackIndex = indexPath.row - 4
+            let name = trackIndex < musicTrackRows.count ? musicTrackRows[trackIndex] : ""
+            cell.textLabel?.text = "🎵 \((name as NSString).deletingPathExtension)"
+            cell.textLabel?.textColor = .label
+            return cell
         }
     }
 
@@ -434,7 +475,8 @@ extension SettingsViewController: UIDocumentPickerDelegate {
             if !imageFiles.isEmpty { try? settings.addImportedPhotos(urls: imageFiles) }
 
         case .musicFile:
-            importMusicFiles(files.filter { SettingsViewController.audioExtensions.contains($0.pathExtension.lowercased()) })
+            importMusicFiles(files.filter { SettingsViewController.audioExtensions.contains($0.pathExtension.lowercased()) },
+                              intoFolderList: false)
 
         case .musicFolder:
             var toImport = files.filter { SettingsViewController.audioExtensions.contains($0.pathExtension.lowercased()) }
@@ -444,7 +486,7 @@ extension SettingsViewController: UIDocumentPickerDelegate {
             if let firstFolder = directories.first {
                 settings.musicFolderName = firstFolder.lastPathComponent
             }
-            importMusicFiles(toImport)
+            importMusicFiles(toImport, intoFolderList: true)
 
         case nil:
             break
@@ -453,14 +495,26 @@ extension SettingsViewController: UIDocumentPickerDelegate {
         tableView.reloadData()
     }
 
-    private func importMusicFiles(_ urls: [URL]) {
+    // intoFolderList picks which SettingsStore list the copied track names are
+    // recorded in, so the settings screen and musicURLs can tell "individually
+    // added" tracks apart from "imported via a folder" tracks.
+    private func importMusicFiles(_ urls: [URL], intoFolderList: Bool) {
         for url in urls {
             let needsScope = url.startAccessingSecurityScopedResource()
             defer { if needsScope { url.stopAccessingSecurityScopedResource() } }
-            let dest = SettingsStore.musicDirectory.appendingPathComponent(url.lastPathComponent)
+            var destName = url.lastPathComponent
+            var dest = SettingsStore.musicDirectory.appendingPathComponent(destName)
+            if FileManager.default.fileExists(atPath: dest.path) {
+                let base = (destName as NSString).deletingPathExtension
+                let ext = (destName as NSString).pathExtension
+                destName = "\(base)_\(String(UUID().uuidString.prefix(8))).\(ext)"
+                dest = SettingsStore.musicDirectory.appendingPathComponent(destName)
+            }
             try? FileManager.default.copyItem(at: url, to: dest)
-            if !settings.musicTracks.contains(url.lastPathComponent) {
-                settings.musicTracks.append(url.lastPathComponent)
+            if intoFolderList {
+                if !settings.musicFolderTracks.contains(destName) { settings.musicFolderTracks.append(destName) }
+            } else {
+                if !settings.musicTracks.contains(destName) { settings.musicTracks.append(destName) }
             }
         }
     }
