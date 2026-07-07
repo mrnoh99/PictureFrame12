@@ -453,11 +453,7 @@ extension SettingsViewController: UIDocumentPickerDelegate {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         let context = pickerContext
         pickerContext = nil
-        // iOS 12 sometimes fails to auto-dismiss the Files sheet after a pick,
-        // which looks to the user like "selection does nothing" (only Cancel
-        // closes it). Dismiss explicitly (from the presenter, not the picker
-        // itself) so the sheet always closes here.
-        dismiss(animated: true)
+        dismissPickerIfNeeded()
 
         var isDir: ObjCBool = false
         let directories = urls.filter {
@@ -498,6 +494,20 @@ extension SettingsViewController: UIDocumentPickerDelegate {
         tableView.reloadData()
     }
 
+    // UIDocumentPickerViewController normally dismisses itself before calling
+    // the delegate. The earlier ".open" folder picker sometimes didn't, so we
+    // used to call dismiss(animated:) unconditionally as a safety net — but
+    // dismiss(animated:) on a view controller with nothing currently presented
+    // gets forwarded to ITS OWN presenter, which was closing the whole
+    // Settings screen (and kicking the user back to the slideshow) whenever
+    // the picker had, in fact, already dismissed itself on its own. Only
+    // dismiss here if something is still actually being presented.
+    private func dismissPickerIfNeeded() {
+        if presentedViewController != nil {
+            dismiss(animated: true)
+        }
+    }
+
     // intoFolderList picks which SettingsStore list the copied track names are
     // recorded in, so the settings screen and musicURLs can tell "individually
     // added" tracks apart from "imported via a folder" tracks.
@@ -529,7 +539,7 @@ extension SettingsViewController: UIDocumentPickerDelegate {
 
     func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
         pickerContext = nil
-        dismiss(animated: true)
+        dismissPickerIfNeeded()
     }
 }
 
