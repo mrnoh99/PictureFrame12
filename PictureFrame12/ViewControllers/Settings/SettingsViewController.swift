@@ -14,6 +14,16 @@ final class SettingsViewController: UITableViewController {
         case overlay
     }
 
+    // Which button triggered the currently-presented UIDocumentPickerViewController.
+    // The delegate is shared across all pickers, so it needs this to know how to
+    // interpret the returned URLs (photo folder vs. music file vs. music folder).
+    private enum PickerContext {
+        case photoFolder
+        case musicFile
+        case musicFolder
+    }
+    private var pickerContext: PickerContext?
+
     init(settings: SettingsStore, audioPlayer: AudioPlayerService, lightroomAuth: LightroomAuthService) {
         self.settings = settings
         self.audioPlayer = audioPlayer
@@ -248,15 +258,24 @@ final class SettingsViewController: UITableViewController {
         present(nav, animated: true)
     }
 
-    // Lets the user pick an entire folder (not individual files): the Files
-    // browser opens in folder-selection mode, and tapping "열기(Open)" on a
-    // folder selects that folder itself. The folder URL is stored as a
-    // security-scoped bookmark (SettingsStore.addFolderAlbum) and its contents
-    // are read live by FolderPhotoService — nothing is copied into the app.
+    // NOTE: an earlier version of this used UIDocumentPickerViewController(
+    // documentTypes: ["public.folder"], in: .open) so the user could pick a
+    // live folder. On-device testing (iPad mini 3, iOS 12.5.8) showed that
+    // mode reaches a dead end for iCloud-hosted folders: browsing into a
+    // folder with no subfolders never shows an Open/Done button at all — only
+    // Cancel. So we use the same reliable checkbox multi-select flow as the
+    // other pickers (.import mode) instead: it lets the user check either
+    // individual photos OR whole folders, and reliably surfaces an enabled
+    // "완료" button. See documentPicker(_:didPickDocumentsAt:) for how folder
+    // vs. file results are told apart.
     private func showFolderPicker() {
-        let picker = UIDocumentPickerViewController(documentTypes: ["public.folder"], in: .open)
+        pickerContext = .photoFolder
+        let picker = UIDocumentPickerViewController(
+            documentTypes: ["public.folder", "public.image", "public.jpeg", "public.png",
+                            "public.tiff", "com.apple.photo"],
+            in: .import)
         picker.delegate = self
-        if #available(iOS 11, *) { picker.allowsMultipleSelection = false }
+        if #available(iOS 11, *) { picker.allowsMultipleSelection = true }
         present(picker, animated: true)
     }
 
@@ -319,17 +338,25 @@ final class SettingsViewController: UITableViewController {
     }
 
     private func showMusicFilePicker() {
-        let picker = UIDocumentPickerViewController(documentTypes: ["public.audio"], in: .import)
+        pickerContext = .musicFile
+        let picker = UIDocumentPickerViewController(
+            documentTypes: ["public.audio", "public.mp3", "com.apple.m4a-audio",
+                            "public.aiff-audio", "public.aifc-audio"],
+            in: .import)
         picker.delegate = self
         if #available(iOS 11, *) { picker.allowsMultipleSelection = true }
         present(picker, animated: true)
     }
 
-    // Same as showMusicFilePicker but lists common audio UTIs explicitly so
-    // more file types appear on iOS 12.
+    // Lets the user check a whole folder of music (instead of individual
+    // files). "public.folder" MUST be included in documentTypes here — without
+    // it, iOS lets the checkbox UI show folders as selectable but silently
+    // refuses to complete when one is checked (the 완료 button looks enabled
+    // but tapping it does nothing, which is what made this look "stuck").
     private func showMusicFolderPicker() {
+        pickerContext = .musicFolder
         let picker = UIDocumentPickerViewController(
-            documentTypes: ["public.audio", "public.mp3", "com.apple.m4a-audio",
+            documentTypes: ["public.folder", "public.audio", "public.mp3", "com.apple.m4a-audio",
                             "public.aiff-audio", "public.aifc-audio"],
             in: .import)
         picker.delegate = self
@@ -343,6 +370,28 @@ final class SettingsViewController: UITableViewController {
                                        preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "확인", style: .default))
         present(alert, animated: true)
+    }
+
+    private static let audioExtensions: Set<String> = ["mp3", "m4a", "aac", "wav", "aiff", "aifc", "caf"]
+    private static let imageExtensions: Set<String> = ["jpg", "jpeg", "png", "heic", "heif", "gif", "tiff", "tif", "bmp", "webp"]
+
+    // Recursively collects files with one of the given extensions from a
+    // security-scoped folder URL (used when the user checks a whole folder
+    // instead of individual files).
+    private func collectFiles(in folder: URL, matching extensions: Set<String>) -> [URL] {
+        let needsScope = folder.startAccessingSecurityScopedResource()
+        defer { if needsScope { folder.stopAccessingSecurityScopedResource() } }
+        guard let enumerator = FileManager.default.enumerator(
+            at: folder, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles])
+        else { return [] }
+        var results: [URL] = []
+        for case let url as URL in enumerator {
+            let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+            if !isDir, extensions.contains(url.pathExtension.lowercased()) {
+                results.append(url)
+            }
+        }
+        return results
     }
 }
 
@@ -358,48 +407,62 @@ extension SettingsViewController: AlbumPickerDelegate {
 // MARK: - UIDocumentPickerDelegate
 extension SettingsViewController: UIDocumentPickerDelegate {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        let context = pickerContext
+        pickerContext = nil
         // iOS 12 sometimes fails to auto-dismiss the Files sheet after a pick,
         // which looks to the user like "selection does nothing" (only Cancel
-        // closes it). Dismiss explicitly so the sheet always closes here.
-        controller.dismiss(animated: true)
+        // closes it). Dismiss explicitly (from the presenter, not the picker
+        // itself) so the sheet always closes here.
+        dismiss(animated: true)
 
-        // Folder selection (showFolderPicker): the picked URL is a directory —
-        // bookmark it and let FolderPhotoService read its photos live.
-        if let folderURL = urls.first {
-            var isDir: ObjCBool = false
-            if FileManager.default.fileExists(atPath: folderURL.path, isDirectory: &isDir), isDir.boolValue {
-                do {
-                    try settings.addFolderAlbum(url: folderURL)
-                } catch {
-                    showFolderAddError(error)
-                }
-                tableView.reloadData()
-                return
+        var isDir: ObjCBool = false
+        let directories = urls.filter {
+            FileManager.default.fileExists(atPath: $0.path, isDirectory: &isDir) && isDir.boolValue
+        }
+        let files = urls.filter { !directories.contains($0) }
+
+        switch context {
+        case .photoFolder:
+            // A checked folder becomes a live, bookmarked album (read on the
+            // fly by FolderPhotoService). Checked individual photo files are
+            // copied into the app sandbox, same as before.
+            for folder in directories {
+                do { try settings.addFolderAlbum(url: folder) }
+                catch { showFolderAddError(error) }
             }
+            let imageFiles = files.filter { SettingsViewController.imageExtensions.contains($0.pathExtension.lowercased()) }
+            if !imageFiles.isEmpty { try? settings.addImportedPhotos(urls: imageFiles) }
+
+        case .musicFile:
+            importMusicFiles(files.filter { SettingsViewController.audioExtensions.contains($0.pathExtension.lowercased()) })
+
+        case .musicFolder:
+            var toImport = files.filter { SettingsViewController.audioExtensions.contains($0.pathExtension.lowercased()) }
+            for folder in directories {
+                toImport += collectFiles(in: folder, matching: SettingsViewController.audioExtensions)
+            }
+            if let firstFolder = directories.first {
+                settings.musicFolderName = firstFolder.lastPathComponent
+            }
+            importMusicFiles(toImport)
+
+        case nil:
+            break
         }
 
-        // File selection (photo/audio import): copy the picked files into the
-        // app sandbox, as before.
-        let imageExts: Set<String> = ["jpg", "jpeg", "png", "heic", "heif", "gif", "tiff", "tif", "bmp", "webp"]
-        let audioExts: Set<String> = ["mp3", "m4a", "aac", "wav", "aiff", "aifc", "caf"]
+        tableView.reloadData()
+    }
 
-        let imageURLs = urls.filter { imageExts.contains($0.pathExtension.lowercased()) }
-        let audioURLs = urls.filter { audioExts.contains($0.pathExtension.lowercased()) }
-
-        if !imageURLs.isEmpty {
-            try? settings.addImportedPhotos(urls: imageURLs)
-        }
-        for url in audioURLs {
+    private func importMusicFiles(_ urls: [URL]) {
+        for url in urls {
+            let needsScope = url.startAccessingSecurityScopedResource()
+            defer { if needsScope { url.stopAccessingSecurityScopedResource() } }
             let dest = SettingsStore.musicDirectory.appendingPathComponent(url.lastPathComponent)
             try? FileManager.default.copyItem(at: url, to: dest)
             if !settings.musicTracks.contains(url.lastPathComponent) {
                 settings.musicTracks.append(url.lastPathComponent)
             }
         }
-        if let first = audioURLs.first {
-            settings.musicFolderName = first.deletingLastPathComponent().lastPathComponent
-        }
-        tableView.reloadData()
     }
 
     // Deprecated iOS 8 fallback — iOS 12 may call this instead of didPickDocumentsAt
@@ -408,7 +471,8 @@ extension SettingsViewController: UIDocumentPickerDelegate {
     }
 
     func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-        controller.dismiss(animated: true)
+        pickerContext = nil
+        dismiss(animated: true)
     }
 }
 
