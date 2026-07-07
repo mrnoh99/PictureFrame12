@@ -358,6 +358,11 @@ extension SettingsViewController: AlbumPickerDelegate {
 // MARK: - UIDocumentPickerDelegate
 extension SettingsViewController: UIDocumentPickerDelegate {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        // iOS 12 sometimes fails to auto-dismiss the Files sheet after a pick,
+        // which looks to the user like "selection does nothing" (only Cancel
+        // closes it). Dismiss explicitly so the sheet always closes here.
+        controller.dismiss(animated: true)
+
         // Folder selection (showFolderPicker): the picked URL is a directory —
         // bookmark it and let FolderPhotoService read its photos live.
         if let folderURL = urls.first {
@@ -400,6 +405,10 @@ extension SettingsViewController: UIDocumentPickerDelegate {
     // Deprecated iOS 8 fallback — iOS 12 may call this instead of didPickDocumentsAt
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
         documentPicker(controller, didPickDocumentsAt: [url])
+    }
+
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        controller.dismiss(animated: true)
     }
 }
 
